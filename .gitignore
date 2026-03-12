@@ -9,7 +9,6 @@
 *.lol
 *.lot
 *.out
-*.pdf
 *.toc
 *.synctex.gz
 *.fdb_latexmk
