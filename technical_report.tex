@@ -188,9 +188,16 @@ Chapter~\ref{chap:expected_results} outlines the expected results.
 \subsection{Functional Requirements}
 % TODO: List and describe the functional requirements.
 \begin{itemize}
-    \item \textbf{FR1} – The system shall \ldots
-    \item \textbf{FR2} – The system shall \ldots
-    \item \textbf{FR3} – The system shall \ldots
+    \item \textbf{FR1 – Centralização e Exposição de Serviços:} O sistema deve atuar como uma API Gateway 
+                                                    centralizada para expor serviços da Universidade de Aveiro para 
+                                                    ser usada nas mais diversas aplicações.
+    \item \textbf{FR2 – Gestão de Identidade:} O sistema tem de implementar mecanismos de autenticação e autorização. 
+                                                Nem todas as APIs podem ser usadas por todos os utilizadores. 
+                                                O sistema deve garantir que apenas os utilizadores autorizados podem aceder a certas APIs.
+                                                Além disso o sistemas assegurar um controlo de acessos robusto aos vários endpoints.
+    \item \textbf{FR3 – Controlo e Monitorização:} A plataforma deve permitir a monitorização detalhada de todos os acessos e controlo dos mesmos.
+    \item \textbf{FR4 – Disponibilização de Documentação:} O sistema deve disponibilizar documentação para utilização dos serviços na plataforma API.
+    \item \textbf{FR5 – Comunicação com Sistemas Antigos:} A plataforma tem de ser capaz de se integrar com os sistemas legados da universidade.
 \end{itemize}
 
 \subsection{Non-Functional Requirements}
