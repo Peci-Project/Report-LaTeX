@@ -232,28 +232,118 @@ Tou  a fazer isto, não mexam nisto pls :)  by pedro
 \end{itemize}
 
 \section{System Architecture}
-% TODO: Describe the overall architecture. Use a diagram if possible.
-\lipsum[14]
+The platform is organised into four distinct layers, as illustrated in
+Figure~\ref{fig:architecture}: the \textit{User Interface}, the \textit{WSO2 API Gateway},
+the \textit{FastAPI backend}, and the \textit{Backend data sources}.
+ 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/architecture_diagram.png}
+    \caption{System Architecture Overview}
+    \label{fig:architecture}
+\end{figure}
+ 
+\subsection{User Interface --- Academic Playground \& Innovation}
+The user-facing layer is the \textit{Academic Playground \& Innovation} portal. It serves
+two purposes: providing documentation on how to use each API, and allowing interactive
+testing of all available endpoints directly in the browser. The goal here is to make it 
+easy for people to learn how to integrate the APIs available in their own projetcs, as after 
+they are familiar with the methods there is no real use for this layer.
+\medskip
 
-% Example figure placeholder – replace with your own diagram
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=0.8\textwidth]{architecture_diagram}
-%     \caption{System Architecture Overview}
-%     \label{fig:architecture}
-% \end{figure}
+The portal was developed using \textbf{Docusaurus}, a static site generator built on
+React and maintained by Meta. This choice is justified by its native support for Markdown
+and MDX, built-in documentation versioning, and ease of maintenance --- updating content
+requires only editing text files, with no need to touch application code, this also facilitates
+escalating the number of APIs, as it's easy to make a complete documentation about all it's methods.
+The \textit{Academic Playground \& Innovation} portal provides interactive testing of all
+available endpoints directly in the browser, following the same approach used by platforms
+such as RapidAPI (wich heavily inspired this front-end). This is achieved by embedding \textbf{Stoplight Elements} into the
+Docusaurus site, which renders a full API explorer from the OpenAPI specification generated
+automatically by FastAPI.
 
-\subsection{Component / Module A}
-% TODO: Describe this component and its responsibilities.
-\lipsum[15]
+Rather than communicating with the FastAPI backend directly, all test requests issued from
+the portal are routed through the \textbf{WSO2 API Gateway}, the same path taken by any
+external consumer. This is accomplished by setting the WSO2 public endpoint as the target
+server in the OpenAPI specification:
 
-\subsection{Component / Module B}
-% TODO: Describe this component and its responsibilities.
-\lipsum[16]
+\begin{lstlisting}[caption={OpenAPI server configuration targeting WSO2}]
+{
+  "servers": [
+    { "url": "https://api.ua.pt/v1" }
+  ]
+}
+\end{lstlisting}
 
-\subsection{Data Model}
-% TODO: Describe the main entities and their relationships.
-\lipsum[17]
+With this configuration, the portal's test interface reflects the real behaviour of the
+platform in production --- including authentication, rate limiting, and request routing ---
+rather than bypassing the gateway layer. For public APIs, such as the canteen menus, no
+credentials are required and requests can be issued immediately. For private APIs, Stoplight
+Elements supports OAuth2 flows natively, allowing users to authenticate with their
+institutional credentials via \texttt{idp.ua.pt} and have the resulting token attached
+automatically to all subsequent test requests.
+
+\subsection{WSO2 API Gateway Layer}
+All requests from the portal pass through a WSO2 API Manager instance, which acts as the
+central API Gateway for the platform. 
+For the test requests explained in the previous layer to function correctly from a browser context, 
+the WSO2 instance must be configured to include the appropriate \texttt{Access-Control-Allow-Origin} headers 
+in its responses, permitting cross-origin requests originating from the portal's domain.
+\medskip
+This layer is responsible for:
+ 
+\begin{itemize}
+    \item \textbf{Authentication and authorisation} --- identity verification for private APIs
+          is delegated to \texttt{idp.ua.pt} via OAuth2, this ensures institutional credentials
+          are being requested correctly from UA's official identity provider;
+    \item \textbf{Request routing} --- the gateway forwards validated requests to the appropriate
+          ServicesUAPT service;
+    \item \textbf{Monitoring and rate limiting} --- all inbound traffic is logged and can be
+          controlled centrally without changes to the backend.
+\end{itemize}
+ 
+Public APIs (such as the canteen menus) are accessible without authentication, while APIs
+that expose sensitive data require a valid OAuth2 token issued by the university's identity
+provider.
+ 
+% TODO: add details about how the WSO2 instance is deployed on the Kubernetes cluster.
+ 
+\subsection{FastAPI Backend - ServicesUAPT}
+The core logic of each service is implemented in Python using the FastAPI framework. This layer is completely
+replacing the old ServicesUAPT wich was very outdated. 
+Each service is isolated in its own router module, making it straightforward to add, remove, or
+update individual APIs without affecting the rest of the platform. The services currently
+implemented or planned are:
+ 
+\begin{itemize}
+    \item \textbf{SAC} --- queue ticket numbers for the Academic Services office;
+    \item \textbf{ArcGIS} --- data about university buildings and campus units;
+    \item \textbf{Estacionamento UA} --- real-time parking availability;
+    \item \textbf{SAS} --- canteen menus, consumed from the UA WSO2 API and cached via Memcached;
+    \item \textbf{Rss2Json} --- generic RSS feed to JSON converter;
+    \item (Additional services to be integrated in future iterations).
+\end{itemize}
+ 
+FastAPI was chosen because it generates OpenAPI-compliant documentation automatically,
+which integrates directly with the WSO2 gateway and removes the need to maintain separate
+API specifications.
+ 
+\subsection{Data Sources (Backend)}
+Depending on the service, the FastAPI layer consumes data from one of this sources:
+
+\begin{itemize}
+    \item \textbf{CSV File} --- used by the SAC service for persistent storage of queue
+          ticket data, written and read directly from a local CSV file;
+    \item \textbf{SOAP Client} --- used by the SAC service to interface with the legacy
+          university systems that expose SOAP/XML web services;
+    \item \textbf{WSO2 UA} --- the university's own API Gateway, consumed by services
+          such as SAS to retrieve data like canteen menus and parking availability.
+\end{itemize}
+ 
+\subsection{Deployment}
+% TODO: describe the Kubernetes cluster and container orchestration.
+The platform is containerised using Docker and deployed on the University of Aveiro's
+Kubernetes cluster, ensuring availability, scalability, and ease of rolling updates.
 
 % ─────────────────────────────────────────────────────────────────────────────
 %  CHAPTER 4 – Expected Results
