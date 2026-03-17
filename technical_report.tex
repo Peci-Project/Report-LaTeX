@@ -72,19 +72,24 @@
     \centering
     \vspace*{1cm}
 
-    {\large \textbf{University Name}}\\[0.3cm]
-    {\large Department of Computer Science}\\[2cm]
+    {\large \textbf{Universidade de Aveiro}}\\[0.3cm]
+    {\large Departamento de Eletrónica, Telecomunicações e Informática}\\[2cm]
 
     % \includegraphics[width=0.3\textwidth]{logo}\\[2cm] % uncomment and replace 'logo' with your logo file
 
     {\LARGE \textbf{Project Title}}\\[0.5cm]
     {\large Technical Report}\\[2cm]
 
-    {\large \textbf{Author Name}}\\[0.2cm]
-    {\large Student Number: ioh123456}\\[2cm]
+    {\large \textbf{Equipa}}\\[0.2cm]
+    {\large André Reis: 119814}\\[0.2cm]
+    {\large Vasco Oliveira: 119113}\\[0.2cm]
+    {\large Pedro Ferreira: 119240}\\[0.2cm]
+    {\large Carlos Ramos: 119873}\\[0.2cm]
+    {\large Dinis Malhado: 120420}\\[0.2cm]
+    {\large Simão Pereira: 120459}\\[2cm]
 
-    {\large Supervisor: Prof. Supervisor Name}\\[0.5cm]
-    {\large Co-supervisor: Prof. Co-supervisor Name}\\[2cm]
+    {\large Orientador: Diogo Gomes}\\[2cm]
+
 
     {\large \today}
 
@@ -97,10 +102,8 @@
 
 % TODO: Write the abstract (150–250 words recommended).
 % Summarise: motivation, problem, approach, main results and conclusions.
-\lipsum[1-2]
 
 \vspace{1em}
-\noindent\textbf{Keywords:} keyword1, keyword2, keyword3, keyword4, keyword5.
 
 % ─── Table of contents ───────────────────────────────────────────────────────
 \tableofcontents
@@ -115,20 +118,41 @@
 
 \section{Context and Motivation}
 % TODO: Describe the context of the project and why it is relevant.
-\lipsum[3]
+Anteriormente, a universidade disponibilizava a plataforma API (Academic Playground \& Innovation), 
+acessível no endereço api.web.ua.pt, que fornecia dados vitais para a comunidade, como a lotação de parques
+de estacionamento, senhas de serviços académicos, ementas das cantinas e informações
+sobre as unidades da universidade. 
+
+No entanto, este serviço teve de ser descontinuado devido a falhas críticas.
+Para resolver este problema, foi proposta a criação de uma nova
+API Gateway institucional, perfeitamente controlada, auditável e escalável.
+
 
 \section{Problem Statement}
 % TODO: Clearly define the problem being addressed.
-\lipsum[4]
+A descontinuação do serviço deve-se principalmente a vulnerabilidades de segurança e
+à falta de otimização do sistema. O sistema baseava-se numa versão de PHP muito antiga que já tinha atingido o
+seu "End of Life", o que significa que deixou de receber atualizações
+e ficou vulnerável a problemas de segurança.
 
 
-\section{Goals and Objectives}
+
+
+Isto fez com que a integração entre sistemas
+fosse difícil e que a experiência da comunidade académica fosse prejudicada.
+
+
+
+\section{Objetivos}
 % TODO: List the main goals of the project.
-The main goals of this project are:
+Os objetivos principais deste projeto são:
 \begin{itemize}
-    \item Goal 1;
-    \item Goal 2;
-    \item Goal 3.
+    \item Transcrever o código obsoleto e passar toda a infraestrutura para a linguagem Python,
+    utilizando a tecnologia API Gateway WSO2 para ter a API funcional e segura;
+    \item Garantir que todas as APIs já existentes correm de forma estável e funcional na nova infraestrutura,
+    de maneira a não prejudicar a experiência da comunidade académica;
+    \item Desenvolver uma arquitetura escalável e fácil de manter, para que seja possível adicionar
+    novas APIs que sejam relevantes no futuro.
 \end{itemize}
 
 \section{Document Structure}
