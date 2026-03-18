@@ -212,23 +212,22 @@ Tou  a fazer isto, não mexam nisto pls :)  by pedro
 \subsection{Functional Requirements}
 % TODO: List and describe the functional requirements.
 \begin{itemize}
-    \item \textbf{FR1 – Centralização e Exposição de Serviços:} O sistema deve atuar como uma API Gateway 
-                                                    centralizada para expor serviços da Universidade de Aveiro para 
-                                                    ser usada nas mais diversas aplicações.
-    \item \textbf{FR2 – Gestão de Identidade:} O sistema tem de implementar mecanismos de autenticação e autorização. 
-                                                Nem todas as APIs podem ser usadas por todos os utilizadores. 
-                                                O sistema deve garantir que apenas os utilizadores autorizados podem aceder a certas APIs.
-                                                Além disso o sistemas assegurar um controlo de acessos robusto aos vários endpoints.
-    \item \textbf{FR3 – Controlo e Monitorização:} A plataforma deve permitir a monitorização detalhada de todos os acessos e controlo dos mesmos.
-    \item \textbf{FR4 – Disponibilização de Documentação:} O sistema deve disponibilizar documentação para utilização dos serviços na plataforma API.
-    \item \textbf{FR5 – Comunicação com Sistemas Antigos:} A plataforma tem de ser capaz de se integrar com os sistemas legados da universidade.
+    \item \textbf{FR1 – Centralização e Exposição de Serviços:} Deve existir uma camada WSO2 que atue como API Gateway centralizada para expor os serviços da Universidade de Aveiro de forma uniforme.
+    \item \textbf{FR2 – Identidade e Permissões:} O sistema tem de implementar mecanismos de autenticação e autorização, garantindo controlo de acesso por API, de acordo com o perfil de cada utilizador.
+    \item \textbf{FR3 – Controlo e Monitorização:} A plataforma deve permitir o controlo e a monitorização detalhada de todos os acessos aos serviços, incluindo registo e rastreabilidade das chamadas efetuadas.
+    \item \textbf{FR4 – Disponibilização de Documentação:} Deve estar disponível a documentação necessária para a utilização de cada API, incluindo descrição dos endpoints, parâmetros, autenticação e exemplos de utilização.
+    \item \textbf{FR5 – Continuidade e Compatibilidade:} A plataforma deve manter os mesmos endpoints, assegurando compatibilidade com os sistemas já integrados e evitando interrupções de serviço.
 \end{itemize}
 
 \subsection{Non-Functional Requirements}
 % TODO: List and describe the non-functional requirements (performance, security, etc.).
 \begin{itemize}
-    \item \textbf{NFR1} – The system shall \ldots
-    \item \textbf{NFR2} – The system shall \ldots
+    \item \textbf{NFR1 – Segurança:} O sistema deve cumcomercialprir boas práticas de segurança, mitigando as vulnerabilidades identificadas na solução anterior e protegendo dados e acessos.
+    \item \textbf{NFR2 – Desempenho:} Os pedidos à API devem ser processados, em condições normais de operação, em menos de 3 segundos.
+    \item \textbf{NFR3 – Escalabilidade Técnica:} A API Gateway deve suportar aumento de carga e crescimento do número de consumidores sem degradação significativa do serviço.
+    \item \textbf{NFR4 – Escalabilidade Funcional:} A introdução e integração de novas APIs deve ser simples, rápida e com impacto mínimo nos serviços existentes.
+    \item \textbf{NFR5 – Manutenibilidade:} O sistema deve adotar boas práticas de desenvolvimento e manter o código legível, modular e bem documentado, de forma a facilitar a manutenção corretiva, evolutiva e preventiva.
+    \item \textbf{NFR6 – Usabilidade da Interface:} O portal de documentação deve apresentar uma interface simples, clara e intuitiva, promovendo a adoção e utilização dos serviços disponibilizados.
 \end{itemize}
 
 \section{System Architecture}
