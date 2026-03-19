@@ -99,9 +99,21 @@
 % ─── Abstract ────────────────────────────────────────────────────────────────
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
-
 % TODO: Write the abstract (150–250 words recommended).
 % Summarise: motivation, problem, approach, main results and conclusions.
+For over a decade, the api.web.ua.pt platform served as a vital digital backbone for the University of Aveiro,
+centralizing essential services ranging from canteen menus to academic ticketing. However, as the digital landscape
+evolved, the original infrastructure began to show its age, struggling with outdated security protocols, poor readability,
+and a lack of modern architectural standards. These mounting technical limitations eventually led to the decommissioning
+of the legacy system, sparking the urgent need for a complete, from-the-ground-up rebuild to better serve the modern student body.
+This project outlines the comprehensive modernization of the university’s API ecosystem. The reconstruction began by revitalizing
+core endpoints—including canteen services (sas), RSS-to-JSON translation tools (Rss2Json), institutional data (ArcGIS),
+real-time parking availability (parques), and academic services (sac). By employing current programming languages and libraries,
+we addressed the fundamental bugs and inefficiencies of the previous system. To safeguard these assets against external threats,
+the new APIs were integrated into a robust WSO2 management layer, unified under the university’s proprietary identity
+provider (IdpUa). The result is a secure, high-performance platform complemented by a dedicated documentation portal
+and an iterative testing framework, ensuring that the university's digital tools are as reliable and accessible as the
+services they represent.
 
 \vspace{1em}
 
