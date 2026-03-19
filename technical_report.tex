@@ -224,22 +224,22 @@ Tou  a fazer isto, não mexam nisto pls :)  by pedro
 \subsection{Functional Requirements}
 % TODO: List and describe the functional requirements.
 \begin{itemize}
-    \item \textbf{FR1 – Centralização e Exposição de Serviços:} Deve existir uma camada WSO2 que atue como API Gateway centralizada para expor os serviços da Universidade de Aveiro de forma uniforme.
-    \item \textbf{FR2 – Identidade e Permissões:} O sistema tem de implementar mecanismos de autenticação e autorização, garantindo controlo de acesso por API, de acordo com o perfil de cada utilizador.
-    \item \textbf{FR3 – Controlo e Monitorização:} A plataforma deve permitir o controlo e a monitorização detalhada de todos os acessos aos serviços, incluindo registo e rastreabilidade das chamadas efetuadas.
-    \item \textbf{FR4 – Disponibilização de Documentação:} Deve estar disponível a documentação necessária para a utilização de cada API, incluindo descrição dos endpoints, parâmetros, autenticação e exemplos de utilização.
-    \item \textbf{FR5 – Continuidade e Compatibilidade:} A plataforma deve manter os mesmos endpoints, assegurando compatibilidade com os sistemas já integrados e evitando interrupções de serviço.
+    \item \textbf{FR1 – Service Centralization and Exposure:} A WSO2 layer must exist that acts as a centralized API Gateway to expose the University of Aveiro's services uniformly.
+    \item \textbf{FR2 – Identity and Permissions:} The system must implement authentication and authorization mechanisms, ensuring access control per API according to each user's profile.
+    \item \textbf{FR3 – Control and Monitoring:} The platform must allow detailed control and monitoring of all service accesses, including logging and traceability of calls made.
+    \item \textbf{FR4 – Documentation Availability:} Documentation must be available for the use of each API, including description of endpoints, parameters, authentication, and usage examples.
+    \item \textbf{FR5 – Continuity and Compatibility:} The platform must maintain the same endpoints, ensuring compatibility with already integrated systems and avoiding service interruptions.
 \end{itemize}
 
 \subsection{Non-Functional Requirements}
 % TODO: List and describe the non-functional requirements (performance, security, etc.).
 \begin{itemize}
-    \item \textbf{NFR1 – Segurança:} O sistema deve cumcomercialprir boas práticas de segurança, mitigando as vulnerabilidades identificadas na solução anterior e protegendo dados e acessos.
-    \item \textbf{NFR2 – Desempenho:} Os pedidos à API devem ser processados, em condições normais de operação, em menos de 3 segundos.
-    \item \textbf{NFR3 – Escalabilidade Técnica:} A API Gateway deve suportar aumento de carga e crescimento do número de consumidores sem degradação significativa do serviço.
-    \item \textbf{NFR4 – Escalabilidade Funcional:} A introdução e integração de novas APIs deve ser simples, rápida e com impacto mínimo nos serviços existentes.
-    \item \textbf{NFR5 – Manutenibilidade:} O sistema deve adotar boas práticas de desenvolvimento e manter o código legível, modular e bem documentado, de forma a facilitar a manutenção corretiva, evolutiva e preventiva.
-    \item \textbf{NFR6 – Usabilidade da Interface:} O portal de documentação deve apresentar uma interface simples, clara e intuitiva, promovendo a adoção e utilização dos serviços disponibilizados.
+    \item \textbf{NFR1 – Security:} The system must comply with security best practices, mitigating vulnerabilities identified in the previous solution and protecting data and access.
+    \item \textbf{NFR2 – Performance:} API requests must be processed, under normal operating conditions, in less than 3 seconds.
+    \item \textbf{NFR3 – Technical Scalability:} The API Gateway must support increased load and growth in the number of consumers without significant service degradation.
+    \item \textbf{NFR4 – Functional Scalability:} The introduction and integration of new APIs must be simple, quick, and have minimal impact on existing services.
+    \item \textbf{NFR5 – Maintainability:} The system must adopt software development best practices and keep code readable, modular, and well-documented to facilitate corrective, evolutionary, and preventive maintenance.
+    \item \textbf{NFR6 – Interface Usability:} The documentation portal must present a simple, clear, and intuitive interface, promoting the adoption and use of available services.
 \end{itemize}
 
 \section{System Architecture}
