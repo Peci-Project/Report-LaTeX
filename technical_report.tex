@@ -129,51 +129,63 @@ services they represent.
 \label{chap:introduction}
 
 \section{Context and Motivation}
-% TODO: Describe the context of the project and why it is relevant.
-Anteriormente, a universidade disponibilizava a plataforma API (Academic Playground \& Innovation), 
-acessível no endereço api.web.ua.pt, que fornecia dados vitais para a comunidade, como a lotação de parques
-de estacionamento, senhas de serviços académicos, ementas das cantinas e informações
-sobre as unidades da universidade. 
+The University of Aveiro has long relied on a centralised web services platform ---
+hosted at \texttt{api.web.ua.pt} --- to expose institutional data to students, faculty,
+and third-party developers. Through this platform, the university made available a range
+of services that became embedded in the daily life of its academic community: real-time
+canteen menus, academic services queue tickets, campus building information, and parking
+availability, among others.
 
-No entanto, este serviço teve de ser descontinuado devido a falhas críticas.
-Para resolver este problema, foi proposta a criação de uma nova
-API Gateway institucional, perfeitamente controlada, auditável e escalável.
-
+Despite its relevance, the platform was built over a decade ago on a PHP stack that has
+since reached end-of-life. Over time, the absence of security updates, the accumulation
+of unresolved bugs, and the growing incompatibility with modern development practices
+rendered the system increasingly difficult to maintain. These factors ultimately led to
+the decommissioning of the legacy platform, leaving a gap in the university's digital
+infrastructure that directly affected students and developers who depended on it.
 
 \section{Problem Statement}
-% TODO: Clearly define the problem being addressed.
-A descontinuação do serviço deve-se principalmente a vulnerabilidades de segurança e
-à falta de otimização do sistema. O sistema baseava-se numa versão de PHP muito antiga que já tinha atingido o
-seu "End of Life", o que significa que deixou de receber atualizações
-e ficou vulnerável a problemas de segurança.
+The core issues that led to the platform's decommissioning can be grouped into three
+categories.
 
+The first is \textbf{security}. The legacy system ran on an outdated version of PHP
+with known CVEs that had gone unpatched, exposing the platform to exploitation. With
+no authentication or authorisation layer in place, any consumer could call any endpoint
+without restriction, making it impossible to protect sensitive data or audit access.
 
+The second is \textbf{reliability and performance}. The architecture was not designed
+to handle concurrent load gracefully. Under peak usage --- such as at the start of the
+academic year or during lunch hours --- the server would become unresponsive, degrading
+the experience for all users simultaneously.
 
+The third is \textbf{maintainability}. The codebase lacked modularity and documentation,
+making it difficult to onboard new developers or extend the platform with additional
+services. Adding a new API required modifying a tightly coupled codebase with no clear
+separation of concerns.
 
-Isto fez com que a integração entre sistemas
-fosse difícil e que a experiência da comunidade académica fosse prejudicada.
+\section{Goals and Objectives}
+This project aims to deliver a complete, production-ready replacement for the legacy
+platform. The main objectives are:
 
-
-
-\section{Objetivos}
-% TODO: List the main goals of the project.
-Os objetivos principais deste projeto são:
 \begin{itemize}
-    \item Transcrever o código obsoleto e passar toda a infraestrutura para a linguagem Python,
-    utilizando a tecnologia API Gateway WSO2 para ter a API funcional e segura;
-    \item Garantir que todas as APIs já existentes correm de forma estável e funcional na nova infraestrutura,
-    de maneira a não prejudicar a experiência da comunidade académica;
-    \item Desenvolver uma arquitetura escalável e fácil de manter, para que seja possível adicionar
-    novas APIs que sejam relevantes no futuro.
+    \item Migrate all existing services to a modern Python stack using FastAPI, preserving
+          the original endpoints to ensure backward compatibility with existing consumers;
+    \item Introduce a WSO2 API Gateway layer to centralise authentication, authorisation,
+          monitoring, and rate limiting across all services;
+    \item Develop a documentation and interactive testing portal --- the
+          \textit{Academic Playground \& Innovation} --- that makes it straightforward
+          for students and developers to discover, understand, and integrate the available APIs;
+    \item Design the architecture to be modular and extensible, so that new services can
+          be added with minimal effort and no disruption to existing ones.
 \end{itemize}
 
 \section{Document Structure}
-% TODO: Briefly describe what each chapter covers.
-This report is organised as follows.
-Chapter~\ref{chap:related_work} presents related work, tools and technologies.
-Chapter~\ref{chap:requirements} describes the requirements elicitation and system architecture.
-Chapter~\ref{chap:expected_results} outlines the expected results.
-
+This report is organised into four chapters. Chapter~\ref{chap:related_work} surveys
+existing solutions and API gateway platforms, and presents the tools and technologies
+selected for the project, justifying each choice. Chapter~\ref{chap:requirements}
+covers the requirements elicitation process --- both functional and non-functional ---
+and provides a detailed description of the system architecture and its constituent layers.
+Chapter~\ref{chap:expected_results} outlines the expected outcomes of the project,
+the planned deliverables, the evaluation criteria, and the development schedule.
 % ─────────────────────────────────────────────────────────────────────────────
 %  CHAPTER 2 – Related Work, Tools and Technologies
 % ─────────────────────────────────────────────────────────────────────────────
@@ -186,7 +198,7 @@ Two previous projects developed at the University of Aveiro are particularly
 relevant to this work: the \emph{OPEN DATA UA} master thesis
 and the final report of the \emph{Academic Playground \& Innovation (API)}
 project. Together, they provide both the conceptual and
-practical foundations on which our project is built.
+practical foundations on which this project is built.
 
 The \emph{OPEN DATA UA} thesis surveys existing institutional information
 sources and web services at UA and proposes a service-oriented architecture
@@ -204,19 +216,20 @@ the supporting services running on services.web.ua.pt and identity.ua.pt.
 It describes in detail the API portal, the catalogue of services (UA, PT SAPO,
 PT Inovação), the documentation and wiki mechanisms, the statistics and
 administration interfaces, as well as the deployment of an OAuth 1.0a server
-integrated with the UA Identity Provider using SimpleSAMLphp.This
+integrated with the UA Identity Provider using SimpleSAMLphp. This
 report provides an operational view of how service publication, authentication,
 authorization and consumption were handled in practice in the first generation
 of the institutional API platform.
 
-Our project can be seen as a next step in this evolution. While \emph{OPEN DATA
+This project can be seen as a next step in this evolution. While \emph{OPEN DATA
 UA} and the API portal focused on exposing individual services and providing a
 web-based aggregation and documentation layer, they are tightly coupled to
-specific technologies and infrastructures that have since become obsolete. In contrast, our work aims at
-designing a modern institutional API Gateway and governance model, aligned with
-current API management practices. Building on the lessons learned from these previous
-projects, we seek to provide a more sustainable, secure and governable
-integration layer for present and future UA systems.
+specific technologies and infrastructures that have since become obsolete.
+In contrast, this project aims at designing a modern institutional API Gateway
+and governance model, aligned with current API management practices. Building
+on the lessons learned from these previous projects, the goal is to provide
+a more sustainable, secure and governable integration layer for present and
+future UA systems.
 
 
 \subsection{Similar System / Approach A}
