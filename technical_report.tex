@@ -202,7 +202,7 @@ practical foundations on which this project is built.
 
 The \emph{OPEN DATA UA} thesis surveys existing institutional information
 sources and web services at UA and proposes a service-oriented architecture
-based on REST and SOAP for exposing institutional data (e.g., cantina menus,
+based on REST and SOAP for exposing institutional data (e.g., canteen menus,
 academic information) in a standardized way. It also implements a web
 portal (APIn) that aggregates services from UA, PT Inovação and SAPO, and
 introduces an OAuth-based authorization server to protect access to private or
@@ -231,33 +231,106 @@ on the lessons learned from these previous projects, the goal is to provide
 a more sustainable, secure and governable integration layer for present and
 future UA systems.
 
-
-\subsection{Similar System / Approach A}
-% TODO: Describe a related system or approach.
-\lipsum[7]
-
-\subsection{Similar System / Approach B}
-% TODO: Describe another related system or approach.
-\lipsum[8]
-
-\subsection{Summary and Comparison}
-% TODO: Summarise and compare the reviewed work.
-\lipsum[9]
-
+\subsection{Commercial API Management Platforms}
+ 
+Several commercial and open-source API management platforms address problems
+similar to those this project aims to solve. \textbf{Kong Gateway} is a widely adopted
+open-source API gateway, offering plugins for authentication,
+rate limiting, logging, and traffic routing. It is highly performant and extensible,
+but requires significant infrastructure investment and operational expertise to deploy
+and maintain at scale. Given that one of the core goals of this project is long-term
+sustainability and ease of handover to future development teams, introducing a platform
+with such operational complexity would be counterproductive.
+ 
+\textbf{AWS API Gateway} and \textbf{Azure API Management} are fully managed cloud
+offerings that eliminate the operational burden of running gateway infrastructure.
+Both provide built-in support for OpenAPI specifications, OAuth2 integration, and
+developer portals. However, as hosted proprietary services, they introduce vendor
+lock-in and are unsuitable for an institutional deployment that must remain under
+the university's control and on-premises.
+ 
+\textbf{RapidAPI} represents a different model, functioning primarily as a marketplace
+and developer portal for discovering and testing third-party APIs. Its interactive
+testing interface --- which allows developers to issue live requests directly from
+the documentation page --- was a direct source of inspiration for the
+\textit{Academic Playground \& Innovation} portal developed in this project.
+ 
+\subsection{Comparable Institutional Platforms}
+ 
+Beyond commercial offerings, several universities and public institutions have
+developed API platforms to expose institutional data to their communities.
+MIT's \textit{Atlas} and Stanford's developer portals follow a similar model:
+centralised access to institutional data through authenticated APIs, with
+developer documentation and sandbox environments.
+ 
+The common thread across these platforms is the separation between the
+\textit{gateway layer} --- responsible for security, routing, and governance ---
+and the \textit{backend services} that implement the actual business logic.
+This separation is a key architectural principle adopted in this project, and one
+that was notably absent from the legacy system, where security concerns, business
+logic, and data access were all handled within the same tightly coupled PHP codebase
+with no clear boundaries between layers.
+ 
+% ─────────────────────────────────────────────────────────────────────────────
+ 
 \section{Tools and Technologies}
-% TODO: Describe the main tools, frameworks and technologies you plan to use.
-
-\subsection{Technology / Framework A}
-% TODO: Describe this technology and justify your choice.
-\lipsum[10]
-
-\subsection{Technology / Framework B}
-% TODO: Describe this technology and justify your choice.
-\lipsum[11]
-
-\subsection{Technology / Framework C}
-% TODO: Describe this technology and justify your choice.
-\lipsum[12]
+ 
+\subsection{Python and FastAPI}
+Python was selected as the primary implementation language for the backend services.
+Its extensive ecosystem, readability, and widespread adoption in both academia and
+industry make it a natural fit for a platform that must be maintained by successive
+generations of students. FastAPI is a modern Python web framework designed for
+building APIs with high performance and minimal boilerplate. It leverages Python
+type annotations to generate OpenAPI-compliant documentation automatically at
+runtime, eliminating the need to maintain separate API specification files.
+This tight integration between code and documentation is particularly valuable
+in a context where the OpenAPI specification is consumed directly by both the
+WSO2 gateway and the developer portal.
+ 
+\subsection{WSO2 API Manager}
+WSO2 API Manager is an open-source, on-premises API management platform that provides
+a complete solution for publishing, securing, monitoring, and governing APIs. It was
+selected for this project because it supports the full OAuth2 authorization code flow
+natively, integrates with external identity providers via OpenID Connect --- enabling
+seamless federation with UA's \texttt{idp.ua.pt} --- and exposes a standards-based
+management interface that can ingest OpenAPI specifications directly. Its open-source
+nature and on-premises deployment model ensure that the university retains full control
+over the platform without dependency on third-party cloud providers.
+ 
+\subsection{OAuth2 and \texttt{idp.ua.pt}}
+Authentication and authorisation are handled through the OAuth2 protocol, delegated
+to the University of Aveiro's institutional identity provider (\texttt{idp.ua.pt}).
+This approach ensures that access to private APIs is gated behind the same credentials
+used across all university systems, without requiring users to manage separate accounts.
+The WSO2 gateway acts as the OAuth2 resource server, validating tokens issued by
+\texttt{idp.ua.pt} before forwarding requests to the backend.
+ 
+\subsection{Docusaurus and Stoplight Elements}
+The developer portal is built with \textbf{Docusaurus}, a React-based static site
+generator maintained by Meta. It was chosen for its native support for Markdown and
+MDX content, built-in versioning, and low maintenance overhead --- documentation
+updates require only editing text files, with no application code changes. Interactive
+API testing is provided by \textbf{Stoplight Elements}, an open-source React component
+that renders a full API explorer from an OpenAPI specification. All test requests issued
+through the portal are routed through the WSO2 gateway, ensuring that the developer
+experience accurately reflects production behaviour.
+ 
+\subsection{Memcached}
+Memcached is a high-performance, in-memory key-value store used in this project to
+cache upstream API responses. Given that certain data sources --- such as the UA WSO2
+canteen menu endpoint --- are slow to respond and return data that changes at most
+once per day, caching responses eliminates redundant upstream calls
+and significantly reduces response times for end consumers. Memcached was preferred
+over alternatives such as Redis for its simplicity and minimal resource footprint,
+which is particularly relevant given the constrained hardware available for deployment.
+ 
+\subsection{Docker and Kubernetes}
+All backend services are containerised using \textbf{Docker}, ensuring environment
+consistency across development, testing, and production. Orchestration is handled
+by \textbf{Kubernetes}, using the cluster infrastructure provided by the University
+of Aveiro. Kubernetes enables declarative deployment, automatic restarts on failure,
+horizontal scaling, and rolling updates with no downtime --- addressing the reliability
+and scalability requirements that the legacy platform was unable to meet.
 
 % ─────────────────────────────────────────────────────────────────────────────
 %  CHAPTER 3 – Requirements Elicitation and Architecture
