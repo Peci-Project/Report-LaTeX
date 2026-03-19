@@ -169,8 +169,43 @@ Chapter~\ref{chap:expected_results} outlines the expected results.
 \label{chap:related_work}
 
 \section{Related Work}
-% TODO: Review the literature. Compare existing solutions with your approach.
-\lipsum[5-6]
+
+Two previous projects developed at the University of Aveiro are particularly
+relevant to this work: the \emph{OPEN DATA UA} master thesis
+and the final report of the \emph{Academic Playground \& Innovation (API)}
+project. Together, they provide both the conceptual and
+practical foundations on which our project is built.
+
+The \emph{OPEN DATA UA} thesis surveys existing institutional information
+sources and web services at UA and proposes a service-oriented architecture
+based on REST and SOAP for exposing institutional data (e.g., cantina menus,
+academic information) in a standardized way. It also implements a web
+portal (APIn) that aggregates services from UA, PT Inovação and SAPO, and
+introduces an OAuth-based authorization server to protect access to private or
+sensitive web services. This work is mainly focused on identifying data
+sources, creating individual web services, and demonstrating how open data and
+secure access control can be applied within the university context.
+
+The \emph{Academic Playground \& Innovation} final report documents the
+concrete implementation of that vision, namely the api.web.ua.pt portal and
+the supporting services running on services.web.ua.pt and identity.ua.pt.
+It describes in detail the API portal, the catalogue of services (UA, PT SAPO,
+PT Inovação), the documentation and wiki mechanisms, the statistics and
+administration interfaces, as well as the deployment of an OAuth 1.0a server
+integrated with the UA Identity Provider using SimpleSAMLphp.This
+report provides an operational view of how service publication, authentication,
+authorization and consumption were handled in practice in the first generation
+of the institutional API platform.
+
+Our project can be seen as a next step in this evolution. While \emph{OPEN DATA
+UA} and the API portal focused on exposing individual services and providing a
+web-based aggregation and documentation layer, they are tightly coupled to
+specific technologies and infrastructures that have since become obsolete. In contrast, our work aims at
+designing a modern institutional API Gateway and governance model, aligned with
+current API management practices. Building on the lessons learned from these previous
+projects, we seek to provide a more sustainable, secure and governable
+integration layer for present and future UA systems.
+
 
 \subsection{Similar System / Approach A}
 % TODO: Describe a related system or approach.
