@@ -99,7 +99,7 @@
 \end{titlepage}
 
 % ─── Abstract ────────────────────────────────────────────────────────────────
-\chapter*{Abstract}
+\chapter*{Abstract(mudar)}
 \addcontentsline{toc}{chapter}{Abstract}
 % TODO: Write the abstract (150–250 words recommended).
 % Summarise: motivation, problem, approach, main results and conclusions.
@@ -178,9 +178,10 @@ platform. The main objectives are:
           for students and developers to discover, understand, and integrate the available APIs;
     \item Design the architecture to be modular and extensible, so that new services can
           be added with minimal effort and no disruption to existing ones.
+    \item \textbf{FAZER A NOVA API MOCK?}
 \end{itemize}
 
-\section{Document Structure}
+\section{Document Structure(mudar)}
 This report is organised into four chapters. Chapter~\ref{chap:related_work} surveys
 existing solutions and API gateway platforms, and presents the tools and technologies
 selected for the project, justifying each choice. Chapter~\ref{chap:requirements}
@@ -299,7 +300,7 @@ management interface that can ingest OpenAPI specifications directly. Its open-s
 nature and on-premises deployment model ensure that the university retains full control
 over the platform without dependency on third-party cloud providers.
  
-\subsection{OAuth2 and \texttt{idp.ua.pt}}
+\subsection{OAuth2 and \texttt{idp.ua.pt}(agora é keycloack não?)}
 Authentication and authorisation are handled through the OAuth2 protocol, delegated
 to the University of Aveiro's institutional identity provider (\texttt{idp.ua.pt}).
 This approach ensures that access to private APIs is gated behind the same credentials
@@ -326,13 +327,19 @@ and significantly reduces response times for end consumers. Memcached was prefer
 over alternatives such as Redis for its simplicity and minimal resource footprint,
 which is particularly relevant given the constrained hardware available for deployment.
  
-\subsection{Docker and Kubernetes}
+\subsection{Docker and Kubernetes(usamos kubernetes?)}
 All backend services are containerised using \textbf{Docker}, ensuring environment
 consistency across development, testing, and production. Orchestration is handled
 by \textbf{Kubernetes}, using the cluster infrastructure provided by the University
 of Aveiro. Kubernetes enables declarative deployment, automatic restarts on failure,
 horizontal scaling, and rolling updates with no downtime --- addressing the reliability
 and scalability requirements that the legacy platform was unable to meet.
+
+\subsection{Grafana and Loki}
+For monitoring and logging, the platform integrates with \textbf{Grafana} and \textbf{Loki}.
+
+\subsection{SQL}
+
 
 % ─────────────────────────────────────────────────────────────────────────────
 %  CHAPTER 3 – Requirements Elicitation and Architecture
@@ -366,7 +373,7 @@ To gather these requirements, we talked to STIC (the most important stackeholder
     \item \textbf{NFR6 – Interface Usability:} The documentation portal must present a simple, clear, and intuitive interface, promoting the adoption and use of available services.
 \end{itemize}
 
-\section{System Architecture}
+\section{System Architecture(mudar todos os pontos quase)}
 The platform is organised into four distinct layers, as illustrated in
 Figure~\ref{fig:architecture}: the \textit{User Interface}, the \textit{WSO2 API Gateway},
 the \textit{FastAPI backend}, and the \textit{Backend data sources}.
@@ -483,7 +490,7 @@ Kubernetes cluster, ensuring availability, scalability, and ease of rolling upda
 % ─────────────────────────────────────────────────────────────────────────────
 %  CHAPTER 4 – Expected Results
 % ─────────────────────────────────────────────────────────────────────────────
-\chapter{Expected Results}
+\chapter{Expected Results(mudar?)}
 \label{chap:expected_results}
 % TODO: Describe what you expect to achieve at the end of the project.
 At the end of this project the expected result is to have a fully operational platform that operates 
