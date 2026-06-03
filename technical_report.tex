@@ -469,6 +469,12 @@ implemented or planned are:
 FastAPI was chosen because it generates OpenAPI-compliant documentation automatically,
 which integrates directly with the WSO2 gateway and removes the need to maintain separate
 API specifications.
+
+\subsection{Mock API Access Points}
+Introdução, Arquitetura(foto) - Pedro 
+Flask, environment python, DER -Carlos
+sql (explicar acesso ao IEETA e porque) -Pedro
+(EM DESENVOLVIMENTO)
  
 \subsection{Data Sources (Backend)}
 Depending on the service, the FastAPI layer consumes data from one of this sources:
@@ -480,9 +486,9 @@ Depending on the service, the FastAPI layer consumes data from one of this sourc
           university systems that expose SOAP/XML web services;
     \item \textbf{WSO2 UA} --- the university's own API Gateway, consumed by services
           such as SAS to retrieve data like canteen menus and parking availability.
+    \item \textbf{SQL} --- ola ola
 \end{itemize}
  
-\subsection{Deployment}
 % TODO: describe the Kubernetes cluster and container orchestration.
 The platform is containerised using Docker and deployed on the University of Aveiro's
 Kubernetes cluster, ensuring availability, scalability, and ease of rolling updates.
