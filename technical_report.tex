@@ -139,7 +139,7 @@ and third-party developers. Through this platform, the university made available
 of services that became embedded in the daily life of its academic community: real-time
 canteen menus, academic services queue tickets, campus building information, and parking
 availability, among others.
-
+\paragraph{}
 Despite its relevance, the platform was built over a decade ago on a PHP stack that has
 since reached end-of-life. Over time, the absence of security updates, the accumulation
 of unresolved bugs, and the growing incompatibility with modern development practices
@@ -150,21 +150,46 @@ infrastructure that directly affected students and developers who depended on it
 \section{Problem Statement}
 The core issues that led to the platform's decommissioning can be grouped into three
 categories.
-
+\paragraph{}
 The first is \textbf{security}. The legacy system ran on an outdated version of PHP
 with known CVEs that had gone unpatched, exposing the platform to exploitation. With
 no authentication or authorisation layer in place, any consumer could call any endpoint
 without restriction, making it impossible to protect sensitive data or audit access.
-
+\paragraph{}
 The second is \textbf{reliability and performance}. The architecture was not designed
 to handle concurrent load gracefully. Under peak usage --- such as at the start of the
 academic year or during lunch hours --- the server would become unresponsive, degrading
 the experience for all users simultaneously.
-
+\paragraph{}
 The third is \textbf{maintainability}. The codebase lacked modularity and documentation,
 making it difficult to onboard new developers or extend the platform with additional
 services. Adding a new API required modifying a tightly coupled codebase with no clear
 separation of concerns.
+
+\section{Project Scope Shift}
+The original plan for this project was to integrate directly with the infrastructure
+managed by STIC (Serviços de Tecnologias de Informação e Comunicação), the university's
+IT department. The intended approach was to fully replace the legacy \texttt{services.web.ua.pt}
+backend with the new FastAPI implementation, position WSO2 in front of it using STIC's
+own API Manager instance, and federate authentication with the university's existing
+identity provider (\texttt{idp.ua.pt}). The broader ambition was to gradually centralise
+all of the university's web services under a single, governed API platform --- one that
+could become the definitive integration layer for present and future UA systems.
+\paragraph{}
+However, at a certain point in the project, communication with STIC ceased. Requests for
+access to the necessary infrastructure, configuration details, and coordination on
+deployment went unanswered, making it impossible to proceed with the original integration
+plan within the project's timeline.
+\paragraph{}
+Following consultation with the project supervisor, Diogo Gomes, the decision was made
+to reorient the project towards a fully self-contained local deployment. Rather than
+depending on external infrastructure, the team set up its own instances of WSO2 API
+Manager, Keycloak (in place of \texttt{idp.ua.pt}), and a monitoring stack based on
+Grafana and Loki. This shift in scope did not diminish the project's ambitions ---
+instead, it reframed them: the goal became to \textit{demonstrate the value} that such
+a platform would bring to the university, delivering a production-equivalent system
+that is fully documented, containerised, and ready to be migrated to real institutional
+infrastructure whenever that collaboration becomes possible.
 
 \section{Goals and Objectives}
 This project aims to deliver a complete, production-ready replacement for the legacy
