@@ -166,7 +166,7 @@ making it difficult to onboard new developers or extend the platform with additi
 services. Adding a new API required modifying a tightly coupled codebase with no clear
 separation of concerns.
 
-\section{Project Scope Shift}
+\section{Project Scope Shift}\label{sec:scope_shift}
 The original plan for this project was to integrate directly with the infrastructure
 managed by STIC (Serviços de Tecnologias de Informação e Comunicação), the university's
 IT department. The intended approach was to fully replace the legacy \texttt{services.web.ua.pt}
@@ -423,12 +423,11 @@ non-functional constraints that shaped the architecture.
           services.
 \end{itemize}
 
-\section{Architecture Overview}
-The platform is organised into four distinct layers, as illustrated in
-Figure~\ref{fig:architecture}: the \textit{User Interface}, the \textit{WSO2 API Gateway},
-the \textit{FastAPI Backend}, and the \textit{Backend Data Sources}. All components run
-on a private Docker network (\texttt{gateway-net}), with WSO2 as the sole externally
-exposed entry point.
+\section{System Architecture}
+The platform is organised into five interconnected layers, as illustrated in
+Figure~\ref{fig:architecture}. All components run on a private Docker network
+(\texttt{gateway-net}), with WSO2 as the sole externally exposed entry point.
+The following subsections describe each layer and how they interact.
 
 \begin{figure}[H]
     \centering
@@ -437,21 +436,50 @@ exposed entry point.
     \label{fig:architecture}
 \end{figure}
 
-\subsection{User Interface --- Academic Playground \& Innovation}
-% TODO: high-level description only — detail goes in Chapter 4
+\subsection{Consumer-Facing Layer}
+The entry point for human users is the \textit{Academic Playground \& Innovation}
+portal, a static documentation website that exposes the full API catalogue alongside
+an interactive testing interface. When a user wishes to test an endpoint, the portal
+issues the request not directly to the backend, but to the WSO2 gateway --- the same
+path taken by any external application. Authentication from the portal is handled by
+redirecting the user to Keycloak, obtaining a token, and attaching it automatically
+to subsequent test requests.
 
-\subsection{WSO2 API Gateway}
-% TODO: high-level description only — detail goes in Chapter 4
+\subsection{Identity and Access Control}
+Keycloak sits at the centre of the platform's security model. It is the sole authority
+on user identity: all login flows, regardless of their origin (portal, Developer Portal,
+or external client), are redirected to Keycloak. Upon successful authentication, Keycloak
+issues a signed JWT token that encodes the user's assigned roles. This token is then
+presented to WSO2, which validates it and uses the role information to determine what
+the user is permitted to access. No credentials are handled by any other component.
 
-\subsection{FastAPI Backend --- ServicesUAPT}
-% TODO: high-level description only — detail goes in Chapter 4
+\subsection{API Gateway}
+WSO2 API Manager is the single externally exposed component of the platform. Every API
+request --- whether originating from the documentation portal, a developer's application,
+or a third-party consumer --- must pass through it. WSO2 validates the Bearer token
+provided by the caller, checks that the caller holds an active subscription for the
+requested API, applies rate limiting, and only then forwards the request to the
+appropriate backend service. Responses follow the reverse path back to the caller.
+WSO2 also exposes a Developer Portal where consumers can discover APIs, create
+applications, and generate access tokens.
 
-\subsection{Backend Data Sources}
-% TODO: high-level description only — detail goes in Chapter 4
+\subsection{Backend Services}
+The business logic of each individual service is implemented as an independent FastAPI
+module. These services are not directly reachable from outside the Docker network;
+they only receive traffic forwarded by the WSO2 gateway. Depending on the service,
+data is retrieved from different upstream sources: some services query the university's
+own WSO2 instance for live institutional data (such as canteen menus), others interface
+with legacy SOAP systems, and one stores its state locally in a CSV file. Frequently
+accessed upstream responses are cached in Memcached to reduce latency and relieve
+pressure on external data sources.
 
-\subsection{Monitoring}
-% TODO: high-level description only — detail goes in Chapter 4
-
+\subsection{Observability}
+All components within the platform emit logs that are collected by Promtail and
+forwarded to Loki for centralised storage and indexing. Grafana connects to Loki as
+a datasource and presents the aggregated data through pre-provisioned dashboards,
+giving operators a real-time view of gateway traffic, error rates, and API usage
+patterns. This layer does not sit in the request path and has no effect on API
+response times.
 % ─────────────────────────────────────────────────────────────────────────────
 %  CHAPTER 4 -- Implementation
 % ─────────────────────────────────────────────────────────────────────────────
@@ -459,8 +487,102 @@ exposed entry point.
 \label{chap:implementation}
 
 \section{Local Development Environment}
-% TODO: describe the Docker Compose setup, gateway-net, volumes, Makefile/run.sh,
-%       and how to bring the full stack up locally
+Given the constraints described in Section~\ref{sec:scope_shift}, the entire platform
+was built and validated in a self-contained local environment. All components are
+orchestrated by a single \texttt{docker-compose.yml} file, allowing the full stack ---
+gateway, identity provider, backend APIs, and monitoring --- to be brought up with a
+single command on any machine with Docker installed.
+
+\subsection{Network Isolation}
+All services communicate over a shared Docker network named \texttt{gateway-net},
+declared as external so that it can be created once and reused across multiple Compose
+projects. Within this network, containers resolve each other by service name (e.g.\
+the SAS service reaches Memcached at the hostname \texttt{memcached}, and Promtail
+reaches Loki at \texttt{loki}). No backend service binds a port to the host machine;
+only WSO2 (ports 8243, 8280, 9443), Keycloak (8080), Loki (3100), and Grafana (3000)
+are reachable from outside the network. This mirrors the intended production topology,
+where the gateway is the sole external entry point.
+
+\subsection{Persistent State via Volumes}
+Three named volumes are defined to preserve state across container restarts:
+\begin{itemize}
+    \item \texttt{wso2\_logs} --- shared between the WSO2 container and Promtail,
+          allowing the log agent to read WSO2's \texttt{wso2carbon.log} without any
+          direct coupling between the two containers;
+    \item \texttt{wso2\_db} --- persists WSO2's internal H2 database, retaining
+          published APIs, applications, and subscriptions between restarts;
+    \item \texttt{keycloak\_data} --- persists the Keycloak database, so that the
+          \texttt{ua} realm, users, and client configuration survive container recreation.
+\end{itemize}
+
+\subsection{Service Composition}
+Table~\ref{tab:services} summarises the services defined in the Compose file and their
+roles within the platform.
+
+\begin{table}[H]
+    \centering
+    \caption{Docker Compose services}
+    \label{tab:services}
+    \begin{tabular}{lp{9cm}}
+        \toprule
+        \textbf{Service} & \textbf{Role} \\
+        \midrule
+        \texttt{wso2-apim}  & API Gateway and Developer Portal. Depends on all backend
+                              services being available before starting. \\
+        \texttt{keycloak}   & Identity Provider. Imports the \texttt{ua} realm automatically
+                              on first start via \texttt{--import-realm}. \\
+        \texttt{loki}       & Log aggregator. Receives log streams from Promtail. \\
+        \texttt{promtail}   & Log agent. Reads the shared \texttt{wso2\_logs} volume and
+                              forwards entries to Loki. \\
+        \texttt{grafana}    & Observability dashboard. Datasources and dashboards are
+                              provisioned automatically from mounted configuration files. \\
+        \texttt{sas}        & Canteen menus API. Depends on Memcached for response caching. \\
+        \texttt{parques}    & Parking availability API. \\
+        \texttt{rss2json}   & RSS to JSON converter API. \\
+        \texttt{ap}         & Access Points mock API. \\
+        \texttt{memcached}  & In-memory cache, used exclusively by the SAS service. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Reproducibility}
+A key design principle of this environment is that no manual configuration step should
+be required after \texttt{docker compose up}. WSO2 loads its configuration from a
+mounted \texttt{deployment.toml}; Keycloak imports the realm from a versioned JSON file;
+Grafana provisions its datasource and dashboards from YAML and JSON files mounted into
+the container. The WSO2 API catalogue is restored automatically at startup via
+\texttt{import-all.sh}. The result is a fully deterministic environment that can be
+reproduced identically on any development machine.
+
+\subsection{Local Environment vs.\ Production Deployment}
+While the local environment faithfully replicates the platform's intended behaviour,
+several differences would need to be addressed in a real institutional deployment.
+
+\begin{table}[H]
+    \centering
+    \caption{Local environment vs.\ production deployment}
+    \label{tab:local_vs_prod}
+    \renewcommand{\arraystretch}{1.8}
+    \begin{tabular}{p{3.5cm}p{5cm}p{5cm}}
+        \toprule
+        \textbf{Aspect} & \textbf{Local} & \textbf{Production} \\
+        \midrule
+        Orchestration   & Docker Compose on a single host  & Kubernetes cluster (UA infrastructure) \\
+        Identity        & Self-hosted Keycloak             & Federated with \texttt{idp.ua.pt} \\
+        TLS/HTTPS       & Not enforced locally             & Required on all external endpoints \\
+        WSO2 database   & Embedded H2                      & External MySQL or PostgreSQL \\
+        Scaling         & Single instance per service      & Horizontal pod autoscaling \\
+        Secrets         & Plain-text \texttt{.env} files   & Kubernetes Secrets or Vault \\
+        Log retention   & Ephemeral volume                 & Persistent storage with retention policy \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Despite these differences, the containerised approach ensures that migrating to a
+production environment is primarily an infrastructural exercise rather than a code
+change. Each service already runs in an isolated container with clearly defined
+dependencies, environment variables, and network boundaries --- the same primitives
+that a Kubernetes deployment would use.
 
 
 \section{WSO2 API Manager}
@@ -490,7 +612,10 @@ To ensure the deployment is fully reproducible, all API definitions are exported
 files using \texttt{apictl}, the WSO2 command-line tool, and stored under version control.
 An import script (\texttt{import-all.sh}) re-registers all APIs automatically on startup,
 meaning the entire API catalogue is restored without any manual intervention when the
-stack is brought up from scratch.
+stack is brought up from scratch. This was mainly done because the project was kept on a 
+repository and it was the most convenient way to share it between team members, in a real 
+scenario, there would be no need to import the APIs as all the configurations would be stored
+in the machine's docker volumes.
 
 \subsection{Access Control and Subscriptions}
 Access to every published API is governed by a subscription model. A consumer must create
@@ -646,10 +771,11 @@ campus. The API acts as a compatibility layer over the University of Aveiro's in
 API, maintaining the same response format as the legacy service to ensure backward compatibility 
 with existing clients.
 \paragraph{}
-The API fetches menu data from the UA WSO2 gateway endpoint 
-\texttt{mysas\_mysas/v1/Refeicoes/GetAgendaMenusEntreDatas}, which returns the full week's 
-menu schedule. This data is then filtered in memory according to the requested place and date 
-parameters, avoiding repeated calls to the upstream service for different parameter combinations.
+The API fetches menu data from the UA WSO2 gateway endpoint
+\texttt{mysas\_mysas/\allowbreak v1/\allowbreak Refeicoes/\allowbreak GetAgendaMenusEntreDatas}, 
+which returns the full week's menu schedule. This data is then filtered in memory according to the 
+requested place and date parameters, avoiding repeated calls to the upstream service for different
+ parameter combinations.
 \paragraph{}
 The canteens covered by this API are Santiago, ESTGA, ESAN, and Restaurante Universitário. 
 Each menu entry exposes the following attributes:
@@ -756,7 +882,7 @@ architecture relies on several key technologies:
     \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and 
           exposing the API through HTTP requests;
     \item \textbf{Zeep} --- the Python SOAP client library used to communicate with the 
-          \texttt{LotacaoParques} SOAP service, wrapped in an asynchronous executor to avoid 
+          \texttt{Lotacao\allowbreak Parques} SOAP service, wrapped in an asynchronous executor to avoid 
           blocking the FastAPI event loop;
     \item \textbf{Pydantic} --- used for data validation and serialization of the API responses, 
           ensuring type safety and consistent output formats.
@@ -897,14 +1023,92 @@ API spec pointing to WSO2
 % TODO
 
 \section{Monitoring --- Grafana, Loki and Promtail}
-% TODO: Promtail configuration, Loki datasource, Grafana dashboard provisioning,
-%       what metrics are exposed and how to read the dashboard
+The monitoring stack provides full observability over the platform's runtime behaviour.
+Access to the Grafana interface is restricted to the platform administrator --- the
+dashboards expose internal gateway metrics, error patterns, and per-API traffic data
+that are operationally sensitive and not intended for general consumers. End users of
+the APIs interact exclusively with the Developer Portal and the documentation site;
+the monitoring layer is entirely invisible to them.
+
+The stack is composed of three components with distinct responsibilities: Promtail
+collects raw log data at the source, Loki stores and indexes it, and Grafana queries
+and visualises it. None of these components sit in the request path, so their operation
+has no effect on API response times.
 
 \subsection{Log Collection with Promtail and Loki}
-% TODO
+WSO2 writes all gateway activity --- inbound requests, authentication events, errors,
+and internal engine messages --- to a file named \texttt{wso2carbon.log}. This file is
+stored in the \texttt{wso2\_logs} named Docker volume, which is mounted simultaneously
+into the WSO2 container (for writing) and the Promtail container (for reading). This
+shared volume is the coupling point between the gateway and the monitoring stack,
+requiring no modification to WSO2 itself.
+
+Promtail is configured via \texttt{promtail.yml} to tail this log file in real time.
+Because the WSO2 internal Synapse engine (\texttt{Synapse-PT-HttpComponents-NIO})
+produces a large volume of internal forwarding messages for every client request ---
+effectively duplicating entries in the log --- a pipeline stage was added to the
+Promtail configuration to discard these internal entries via a regular expression filter.
+Only log lines corresponding to actual client requests are forwarded to Loki, keeping
+the stored log volume lean and the queries fast.
+
+Loki receives the filtered log stream and indexes it using label sets (e.g.\ job name,
+container name). It stores the raw log lines as compressed chunks and builds a sparse
+index over the labels, making it efficient for log aggregation without the overhead of
+full-text indexing. Queries are expressed in LogQL, Loki's query language, which allows
+filtering, parsing, and aggregating log data in the same way that PromQL is used for
+metric data.
 
 \subsection{Grafana Dashboard}
-% TODO
+Having structured, queryable access to gateway logs unlocks a range of operational
+insights that would be impossible to obtain from the APIs themselves. The Grafana
+instance is provisioned automatically from versioned configuration files --- datasource
+definitions in YAML and dashboard layouts in JSON --- meaning the entire monitoring
+interface is restored without manual setup whenever the stack is restarted.
+
+Two dashboards are provided, each targeting a different operational concern.
+
+The \textbf{APIs Dashboard} focuses on business-level traffic analysis. Because all
+requests pass through the WSO2 gateway and are logged uniformly, it is possible to
+compare the relative popularity of each API, identify which endpoints are called most
+frequently, and detect usage trends over time. Pie charts show the distribution of
+traffic across the API catalogue, making it immediately apparent which services drive
+the most load. Time-series panels reveal peak usage hours --- for instance, the canteen
+menu API predictably spikes around midday --- allowing the administrator to anticipate
+load and plan maintenance windows accordingly. In the following example, illustrated in Figure 
+\ref{fig:grafana_apis}, one can see the service's logs from the last hour and see that the \texttt{Parques}
+API was not used, as well as compare the usage of the ones that were.
+.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/apisdashboard.png}
+    \caption{Grafana APIs Dashboard --- traffic distribution and per-endpoint usage}
+    \label{fig:grafana_apis}
+\end{figure}
+
+The \textbf{WSO2 Dashboard} focuses on gateway health. It surfaces warning and error
+counts from the WSO2 logs, highlights \texttt{403 Forbidden} responses (indicating
+rejected or misconfigured access attempts), and flags critical exceptions such as
+\texttt{OutOfMemoryError} or \texttt{FATAL} entries. An alerting rule monitors for
+these critical patterns continuously; when triggered, it dispatches a notification to
+the administrator. The rule is calibrated with \texttt{noDataState: OK} so that periods
+of low or zero traffic --- expected outside academic hours --- do not generate false
+positive alerts. In the following example, illustrated in Figure \ref{fig:grafana_wso2}, 
+one can see the gateway's logs from the last hour.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/wso2dashboard.png}
+    \caption{Grafana WSO2 Dashboard --- gateway health, error rates, and warnings}
+    \label{fig:grafana_wso2}
+\end{figure}
+
+Together, the two dashboards give the administrator a complete picture of the platform:
+one lens focused on \textit{who is using what}, and another on \textit{whether the
+system is healthy}. This separation of concerns makes it straightforward to triage
+issues --- a spike in 403 errors on the WSO2 dashboard points to an authentication or
+subscription problem, while an unexpected drop in traffic on the APIs dashboard may
+indicate a backend outage.
 
 % ─────────────────────────────────────────────────────────────────────────────
 %  CHAPTER 5 -- Results
