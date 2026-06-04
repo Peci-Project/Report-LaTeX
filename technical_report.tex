@@ -941,16 +941,34 @@ Keycloak is acting as a substitute for the university's identity provider,
  from their browsers. Since the endpoints are the same, the platform is ready
  to be migrated if necessary.
 \subsection{APIs Delivered}
-% TODO
+The platform delivered four working APIs that cover the main use cases identified for
+the project. The \textbf{SAS} API exposes canteen menu information while preserving the
+legacy response formats used by existing consumers. The \textbf{Parques} API provides
+real-time parking occupancy data through a REST layer on top of the original SOAP
+service, making the information easier to integrate with modern clients. The
+\textbf{Rss2Json} API converts external RSS feeds into JSON or JSONP, offering a simple
+way to consume feed content programmatically. Finally, the \textbf{Access Points}
+mock API demonstrates how new institutional services can be added to the platform,
+providing a realistic example of the architecture's extensibility.
 
 \subsection{Security and Access Control}
 % TODO
 
-\subsection{Performance}
-% TODO
+\subsection{Performance(atualizar mais tarde)}
+The main performance target stated in the report was to keep API responses under
+3 seconds under normal operating conditions. To support that objective, the platform
+was designed to minimise unnecessary upstream calls and to serve repeated requests
+from cache whenever possible. The SAS API stores the full week's menu data in
+Memcached and filters it in memory, while also using 	exttt{ETag} and
+      exttt{Cache-Control} headers to avoid resending unchanged data. The Rss2Json API
+follows a stale-while-revalidate approach, returning cached content immediately and
+refreshing it in the background. The Parques API also reduces overhead by wrapping the
+original SOAP service behind a lightweight REST interface, so the most expensive part
+of the request path is isolated and only executed when fresh data is needed.
+
+\subsection{AI Acknoledgment}
 
 \subsection{Known Limitations and Future Work}
-% TODO
 
 \section{Projected Schedule}
 \begin{figure}[H]
