@@ -205,6 +205,8 @@ platform. The main objectives are:
           for students and developers to discover, understand, and integrate the available APIs;
     \item Design the architecture to be modular and extensible, so that new services can
           be added with minimal effort and no disruption to existing ones.
+    \item Introduce mock APIs to demonstrate the ease of integration for future services
+          and what could have been done if they were to be implemented with real data.
 \end{itemize}
 
 \section{Document Structure}
@@ -595,7 +597,15 @@ for existing consumers.
 \section{Achieved Results}
 % TODO: fill in at the end of the project — compare against expected results above,
 %       include performance measurements, security validation, API coverage, etc.
-
+Finished the project, all expected results were achieved. Even though the original plan 
+of integrating with the university's infrastructure was not possible, the final result is a fully operational
+platform that meets all the objectives proposed at the beginning of the project.
+Keycloak is acting as a substitute for the university's identity provider,
+ and all APIs are protected behind it, ensuring that only authenticated users can access them.
+ The documentation portal is live and provides comprehensive information about each endpoint, 
+ along with an interactive testing interface that allows users to try out the APIs directly
+ from their browsers. Since the endpoints are the same, the platform is ready
+ to be migrated if necessary.
 \subsection{APIs Delivered}
 % TODO
 
