@@ -617,7 +617,27 @@ from a user's first login to a successful API call:
 
 
 \section{APIs --- ServicesUAPT}
-% TODO: general notes on the FastAPI structure, router pattern, Memcached cache layer
+The API UA platform was implemented in Python using the FastAPI framework, following a 
+modular router-based architecture. Each service is encapsulated in its own router module, 
+registered in the main application entry point, and exposed under a dedicated URL prefix. 
+This design ensures a clear separation of concerns between services and facilitates the 
+integration of new APIs in the future without modifying existing ones.
+\paragraph{}
+The main application initialises the FastAPI instance, registers all routers, and manages 
+the lifecycle of shared resources --- such as the SOAP client used by the Parking Lots API 
+--- through FastAPI's lifespan context manager, ensuring proper initialisation and cleanup 
+on startup and shutdown respectively.
+\paragraph{}
+For services that consume external data sources, a caching layer was introduced to reduce 
+upstream load and improve response times. The Canteen Menus API uses \textbf{Memcached} 
+as its caching backend, storing the full week's menu data in memory and refreshing it 
+daily at midnight. The RSS to JSON API uses a file-based cache, storing each converted 
+feed as a local file identified by a SHA-1 hash of its URL, with background refresh tasks 
+keeping the cache up to date without blocking client responses.
+\paragraph{}
+All APIs maintain backward compatibility with the legacy PHP services they replace, 
+preserving the same endpoint structure, query parameters, and response formats --- 
+including XML, JSON, and JSONP --- ensuring a transparent migration for existing clients.
 
 \subsection{SAS --- Canteen Menus}
 The Canteen Menus API provides access to the University of Aveiro's canteen menu information, 
