@@ -620,13 +620,199 @@ from a user's first login to a successful API call:
 % TODO: general notes on the FastAPI structure, router pattern, Memcached cache layer
 
 \subsection{SAS --- Canteen Menus}
-% TODO
+The Canteen Menus API provides access to the University of Aveiro's canteen menu information, 
+exposing the weekly and daily meal schedules for the various canteens across the university 
+campus. The API acts as a compatibility layer over the University of Aveiro's internal WSO2 
+API, maintaining the same response format as the legacy service to ensure backward compatibility 
+with existing clients.
+\paragraph{}
+The API fetches menu data from the UA WSO2 gateway endpoint 
+\texttt{mysas\_mysas/v1/Refeicoes/GetAgendaMenusEntreDatas}, which returns the full week's 
+menu schedule. This data is then filtered in memory according to the requested place and date 
+parameters, avoiding repeated calls to the upstream service for different parameter combinations.
+\paragraph{}
+The canteens covered by this API are Santiago, ESTGA, ESAN, and Restaurante Universitário. 
+Each menu entry exposes the following attributes:
+
+\begin{itemize}
+    \item \textbf{Canteen} --- the full name of the canteen;
+    \item \textbf{Meal} --- the meal period (e.g. Almoço);
+    \item \textbf{Date} --- the date of the menu in ISO 8601 format (\texttt{YYYY-MM-DD});
+    \item \textbf{Items} --- the list of meal components available for that menu.
+\end{itemize}
+
+\subsubsection{Caching Strategy}
+A key feature of the SAS API is its caching mechanism, implemented using Memcached. 
+Rather than fetching data from the upstream WSO2 API on every request, the API stores the 
+full week's menu data in Memcached under a single cache key (\texttt{ementas:all:week}). 
+This cached data is then filtered in memory for each request, making any combination of 
+place and date parameters fast to serve without additional upstream calls.
+\paragraph{}
+The cache expiry is calculated dynamically as the number of seconds remaining until midnight, 
+ensuring the cache is refreshed daily with up-to-date menu information. Additionally, the API 
+supports HTTP caching through \texttt{ETag} and \texttt{Cache-Control} headers --- if the 
+client already holds the current version of the data, the API returns a \texttt{304 Not Modified} 
+response without a body, reducing unnecessary data transfer.
+
+\subsubsection{SAS API Implementation Stack}
+The SAS API was implemented in Python using the FastAPI framework. The application
+architecture relies on several key technologies:
+
+\begin{itemize}
+    \item \textbf{FastAPI} --- the web framework used to define and expose the REST endpoint, 
+          providing automatic OpenAPI documentation generation and request validation;
+    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and 
+          exposing the API through HTTP requests;
+    \item \textbf{Memcached} --- an in-memory caching system used to store the full week's 
+          menu data, reducing the number of upstream requests and improving response times;
+    \item \textbf{pymemcache} --- the Python client library used to communicate with the 
+          Memcached server, providing get, set, and flush operations through a thin wrapper 
+          centralising all cache logic;
+    \item \textbf{requests} --- used to perform HTTP requests to the upstream UA WSO2 API 
+          to fetch the menu data;
+    \item \textbf{xmltodict} and \textbf{dicttoxml} --- used to handle XML serialization 
+          of the response data for the default XML format;
+    \item \textbf{Pydantic} --- used for request parameter validation and configuration 
+          management.
+\end{itemize}
+
+The API exposes the following endpoint:
+
+\begin{itemize}
+    \item \texttt{GET /sas/ementas} --- returns canteen menus, accepting the following 
+          query parameters:
+    \begin{itemize}
+        \item \textbf{place} --- the canteen to filter by; accepted values are 
+              \texttt{santiago}, \texttt{estga}, \texttt{esan}, \texttt{rest}, and 
+              \texttt{all} (default: \texttt{all});
+        \item \textbf{date} --- the time range of menus to return; accepted values are 
+              \texttt{day} for today's menus only and \texttt{week} for the full week 
+              (default: \texttt{day});
+        \item \textbf{format} --- the response format; accepted values are \texttt{xml}, 
+              \texttt{json}, and \texttt{jsonp} (default: \texttt{xml});
+        \item \textbf{cb} --- the JavaScript callback function name, required when 
+              \texttt{format=jsonp};
+        \item \textbf{help} --- when present, redirects the client to the API documentation;
+        \item \textbf{clear\_cache} --- when present, flushes the Memcached cache and 
+              returns a \texttt{200 OK} response.
+    \end{itemize}
+\end{itemize}
 
 \subsection{Parques --- Parking Availability}
-% TODO
+The Parking Lots API provides real-time occupancy information for the University of Aveiro's 
+parking facilities. Rather than directly exposing the existing SOAP service, this API acts as 
+a REST/JSON wrapper around the \texttt{LotacaoParques} SOAP service, making it easier to 
+consume by modern clients and applications.
+\paragraph{}
+The service retrieves live data from the University of Aveiro's internal SOAP endpoint, 
+hosted at \texttt{score.ua.pt}, which exposes a single operation --- \texttt{Lotacao()} --- 
+returning the current occupancy status for all parking lots. The API enriches this data 
+with additional static information, such as each parking lot's display name and geographical 
+coordinates (latitude and longitude), which are maintained in a hardcoded mapping structure 
+within the application.
+\paragraph{}
+The parking lots covered by this API are distributed across the University of Aveiro campus 
+and affiliated locations, including Residencias, Biblioteca, ZTC, Subterraneo, Ceramica, 
+Linguas, Incubadora, ISCAA Publico, ISCAA Funcionarios, and ESTGA. Each parking lot is 
+identified by a unique identifier (e.g. \texttt{P8}, \texttt{P1|4}) and exposes the following 
+attributes:
+
+\begin{itemize}
+    \item \textbf{Parque} --- the internal name of the parking lot as returned by the SOAP service;
+    \item \textbf{Display Name} --- a human-readable name for the parking lot;
+    \item \textbf{Capacidade} --- the total parking capacity;
+    \item \textbf{Ocupado} --- the number of currently occupied spaces;
+    \item \textbf{Livre} --- the number of currently available spaces;
+    \item \textbf{Latitude and Longitude} --- the geographical coordinates of the parking lot.
+\end{itemize}
+
+\subsubsection{Parking Lots API Implementation Stack}
+The Parking Lots API was implemented in Python using the FastAPI framework. The application 
+architecture relies on several key technologies:
+
+\begin{itemize}
+    \item \textbf{FastAPI} --- the web framework used to define and expose the REST endpoints, 
+          providing automatic OpenAPI documentation generation and request validation;
+    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and 
+          exposing the API through HTTP requests;
+    \item \textbf{Zeep} --- the Python SOAP client library used to communicate with the 
+          \texttt{LotacaoParques} SOAP service, wrapped in an asynchronous executor to avoid 
+          blocking the FastAPI event loop;
+    \item \textbf{Pydantic} --- used for data validation and serialization of the API responses, 
+          ensuring type safety and consistent output formats.
+\end{itemize}
+
+The API exposes the following endpoints:
+
+\begin{itemize}
+    \item \texttt{GET /parques/parques} --- returns occupancy data for all parking lots, 
+          with an optional \texttt{id} parameter accepting one or more comma-separated 
+          parking lot identifiers (e.g. \texttt{?id=P8,P9});
+    \item \texttt{GET /parques/health} --- a liveness probe endpoint that confirms the API 
+          and SOAP client are operational;
+    \item \texttt{GET /parques/occupancy} --- returns occupancy data with an optional filter 
+          by parking lot name;
+    \item \texttt{GET /parques/occupancy/\{parque\_name\}} --- returns occupancy data for a 
+          single parking lot identified by name.
+\end{itemize}
 
 \subsection{Rss2Json}
-% TODO
+The RSS to JSON API provides a simple interface for converting RSS feeds into JSON format, 
+making it easier for modern clients and applications to consume RSS content without having 
+to parse XML directly. The API accepts any valid RSS feed URL and returns its contents 
+as a structured JSON object, with optional JSONP support for cross-origin requests.
+\paragraph{}
+A key feature of this API is its caching mechanism. To avoid unnecessary network requests 
+and reduce latency, the API stores the converted feed data in a local cache directory. 
+Each cache file is identified by a SHA-1 hash of the RSS feed URL, ensuring unique cache 
+entries per feed. When a cached version of a feed exists, the API serves it immediately 
+and schedules a background refresh to keep the cache up to date. When no cache exists, 
+the feed is fetched, converted, and stored before being returned to the client.
+\paragraph{}
+This stale-while-revalidate caching strategy ensures that the API always responds quickly, 
+even when the upstream RSS feed is slow or temporarily unavailable, while still keeping 
+the data reasonably fresh.
+
+\subsubsection{RSS2JSON API Implementation Stack}
+The RSS2JSON API was implemented in Python using the FastAPI framework. The application
+architecture relies on several key technologies:
+
+\begin{itemize}
+    \item \textbf{FastAPI} --- the web framework used to define and expose the REST endpoint, 
+          providing automatic OpenAPI documentation generation and request validation;
+    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and 
+          exposing the API through HTTP requests;
+    \item \textbf{httpx} --- an asynchronous HTTP client used to fetch the RSS feed from 
+          the provided URL, supporting redirects and configurable timeouts;
+    \item \textbf{xmltodict} --- used to parse the XML/RSS content into a Python dictionary, 
+          which is then serialized into JSON;
+    \item \textbf{Pydantic} --- used for request parameter validation, ensuring the RSS URL 
+          is provided and correctly formatted.
+\end{itemize}
+
+The API exposes the following endpoint:
+
+\begin{itemize}
+    \item \texttt{GET /rss2json} --- converts a RSS feed to JSON, accepting the following 
+          query parameters:
+    \begin{itemize}
+        \item \textbf{rss} --- the URL of the RSS feed to convert (required, must be URL-encoded);
+        \item \textbf{callback} --- an optional JavaScript function name; when provided, 
+              the response is returned in JSONP format instead of plain JSON, enabling 
+              cross-origin requests from browser-based clients.
+    \end{itemize}
+\end{itemize}
+
+The caching behaviour follows this logic:
+
+\begin{itemize}
+    \item \textbf{Cache hit} --- the cached JSON is served immediately and a background 
+          task is scheduled to refresh the cache asynchronously, without blocking the response;
+    \item \textbf{Cache miss} --- the RSS feed is fetched synchronously, converted to JSON, 
+          stored in the cache, and returned to the client;
+    \item \textbf{Cache storage} --- each feed is stored as a file identified by the 
+          SHA-1 hash of its URL, in a dedicated cache directory within the application.
+\end{itemize}
 
 \subsection{Access Points --- Mock API}
 The API UA platform is not merely a system that centralizes the various services offered by 
