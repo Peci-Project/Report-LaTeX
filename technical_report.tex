@@ -462,31 +462,159 @@ exposed entry point.
 % TODO: describe the Docker Compose setup, gateway-net, volumes, Makefile/run.sh,
 %       and how to bring the full stack up locally
 
+
 \section{WSO2 API Manager}
-% TODO: deployment.toml configuration, API registration, apictl export/import,
-%       OAuth2 scope mapping, CORS headers, rate limiting policies
+WSO2 API Manager acts simultaneously as the API Gateway and as a Service Provider within
+the platform's security architecture. It is the sole component exposed to the outside
+world, intercepting every inbound request before it reaches any backend service. Rather
+than managing user identities itself, WSO2 delegates all authentication to Keycloak,
+focusing exclusively on validating tokens and enforcing subscription-based access control
+over the published APIs.
 
 \subsection{Configuration}
-% TODO
+The core WSO2 configuration is defined in \texttt{deployment.toml}. The most significant
+settings establish the federation with Keycloak: WSO2 is pointed at Keycloak's OIDC
+endpoints (Authorization, Token, and Userinfo), and a confidential client registration is
+referenced so that the token exchange between the two systems can be performed securely.
+CORS headers are also configured at this level to permit cross-origin requests originating
+from the documentation portal, which is necessary for the interactive testing feature to
+function correctly from a browser context.
 
 \subsection{API Registration and Lifecycle}
-% TODO: how APIs are exported with apictl and imported automatically on startup
+APIs are defined and published through the WSO2 API Publisher. Each API (SAS, Parques,
+Rss2Json, and the Access Points mock API) is created with its backend context, endpoint
+URL, and resource definitions. Once published, the API becomes discoverable and
+subscribable in the Developer Portal.
 
-\subsection{Access Control and Scopes}
-% TODO: how roles (admin/professor/aluno) map to API scopes in WSO2
+To ensure the deployment is fully reproducible, all API definitions are exported as ZIP
+files using \texttt{apictl}, the WSO2 command-line tool, and stored under version control.
+An import script (\texttt{import-all.sh}) re-registers all APIs automatically on startup,
+meaning the entire API catalogue is restored without any manual intervention when the
+stack is brought up from scratch.
+
+\subsection{Access Control and Subscriptions}
+Access to every published API is governed by a subscription model. A consumer must create
+an Application in the Developer Portal and subscribe that Application to the desired API.
+Upon subscription, a set of OAuth2 Bearer tokens (Production Keys) is generated for that
+Application. Every subsequent API request must carry one of these tokens in the
+\texttt{Authorization} header.
+
+When a request arrives at the gateway, WSO2 performs the following checks before
+forwarding it to the backend:
+\begin{itemize}
+    \item validates the token signature and expiry;
+    \item verifies that the Application owning the token holds an active subscription
+          for the requested API path and version;
+    \item applies any configured rate limiting policies.
+\end{itemize}
+Only if all checks pass does the internal Synapse engine forward the request to the
+corresponding FastAPI backend service and relay the response back to the client.
+
+\subsection{Role Mapping --- Translating Keycloak Roles into WSO2 Privileges}
+Although WSO2 delegates authentication to Keycloak, authorisation within the WSO2 portals
+(i.e.\ what a user is permitted to do in the Publisher and Developer Portal) depends on
+WSO2-internal roles. Keycloak and WSO2 use different role nomenclatures: Keycloak may
+define a role such as \texttt{api\_consumer}, while WSO2 requires an internal role of
+\texttt{Internal/subscriber} to allow a user to subscribe to APIs in the Developer Portal.
+
+To bridge this semantic gap, a Role Mapping table was configured in the Identity Provider
+settings of the WSO2 Carbon admin panel. The mapping operates as follows:
+
+\begin{enumerate}
+    \item \textbf{Claim extraction:} when the user authenticates, the Keycloak token or
+          Userinfo response includes a roles claim --- an array of role names assigned to
+          that user in the Keycloak \texttt{ua} realm.
+    \item \textbf{Translation:} WSO2 reads those IdP roles and maps each one to one or
+          more local roles using the configured dictionary. For example,
+          \texttt{api\_consumer} is translated to \texttt{Internal/subscriber}, granting
+          the user the ability to discover and subscribe to APIs in the Developer Portal.
+    \item \textbf{Injection via JIT Provisioning:} the translated roles are assigned to
+          the user's profile at the moment it is silently created in WSO2's PRIMARY user
+          store (see Section~\ref{sec:keycloak_jit}).
+\end{enumerate}
+
+Without this translation layer, federation would be authentication-only: users would be
+able to log in via Keycloak, but would encounter empty screens or \texttt{403 Forbidden}
+responses throughout the WSO2 portals. The role mapping closes that gap and ensures
+that access privileges defined in Keycloak propagate automatically into WSO2.
 
 \section{Keycloak}
-% TODO: ua realm configuration, client setup, role definitions,
-%       token flow with WSO2
+Keycloak serves as the central Identity Provider (IdP) for the platform, handling all
+user authentication through the OpenID Connect (OIDC) protocol. No user passwords are
+stored or validated by WSO2 or by any of the backend API services; all authentication
+flows are directed to Keycloak.
 
 \subsection{Realm Configuration}
-% TODO
+A dedicated realm named \texttt{ua} was created to isolate the platform's identity
+configuration from any default Keycloak settings. The realm defines the token expiry
+policies, OIDC endpoints, and the set of clients and roles used across the platform.
 
-\subsection{User Roles and Clients}
-% TODO
+\subsection{Client Setup and CORS}
+A confidential OIDC client with the ID \texttt{wso2} was registered within the
+\texttt{ua} realm to represent the WSO2 API Manager. The client is configured with:
+\begin{itemize}
+    \item \textbf{Client Authentication enabled} (confidential client): ensures that
+          only the WSO2 server, which holds the client secret, can exchange authorisation
+          codes for access tokens;
+    \item \textbf{Standard Flow (Authorization Code Flow) enabled}: the user is
+          redirected to Keycloak's login page, authenticates, and is returned to the
+          WSO2 Developer Portal with a short-lived authorisation code, which WSO2 then
+          exchanges for a JWT access token;
+    \item \textbf{Web Origins and Redirect URIs}: configured to permit requests from the
+          WSO2 portal URLs, preventing browsers from blocking the OIDC redirect flow
+          with Cross-Origin Resource Sharing (CORS) errors.
+\end{itemize}
 
-\subsection{Integration with WSO2}
-% TODO: how WSO2 validates Keycloak tokens (401 issue and resolution)
+\subsection{User Roles}
+Three roles are defined in the \texttt{ua} realm, corresponding to the expected consumer
+profiles of the platform:
+\begin{itemize}
+    \item \texttt{admin} --- full access to both the API Publisher and Developer Portal;
+    \item \texttt{professor} --- access to a defined subset of APIs;
+    \item \texttt{aluno} --- access to public and student-facing APIs.
+\end{itemize}
+These roles are included in the tokens issued by Keycloak and mapped to WSO2 internal
+roles as described in the previous section.
+
+\subsection{Just-in-Time Provisioning}
+\label{sec:keycloak_jit}
+WSO2 maintains its own internal user store (the \texttt{PRIMARY} domain) to track
+Applications and API subscriptions. For a user authenticated via Keycloak to be able to
+create Applications and subscribe to APIs in the Developer Portal, a corresponding record
+must exist in this store.
+
+Just-in-Time (JIT) Provisioning was configured on the WSO2 side to handle this
+automatically. When a user logs into the Developer Portal via Keycloak for the first time,
+WSO2 silently creates a profile for that user in the \texttt{PRIMARY} store, assigns the
+translated local roles, and completes the login --- all without any visible interruption
+to the user. On subsequent logins, the existing profile is updated if the user's roles in
+Keycloak have changed.
+
+\subsection{The Complete Authentication and API Call Flow}
+To illustrate how all components interact, the following describes the end-to-end flow
+from a user's first login to a successful API call:
+
+\begin{enumerate}
+    \item The user navigates to the WSO2 Developer Portal and clicks \textit{Login}.
+    \item WSO2 redirects the browser to Keycloak's authorisation endpoint.
+    \item The user authenticates against Keycloak (username and password).
+    \item Keycloak issues an authorisation code and redirects the browser back to WSO2.
+    \item WSO2 exchanges the authorisation code for a JWT access token at Keycloak's
+          token endpoint, using its client secret.
+    \item WSO2 reads the user's roles from the token, applies the Role Mapping, and
+          creates (or updates) the user's profile in the \texttt{PRIMARY} store via JIT
+          Provisioning.
+    \item The user is now logged into the Developer Portal. They create an Application,
+          subscribe it to an API (e.g.\ \textit{Parques 1.0.0}), and generate
+          Production Keys (a Bearer token).
+    \item To call the API, the user sends an HTTP request to the WSO2 gateway 
+          with the header \texttt{Authorization: Bearer <token>}.
+    \item The WSO2 gateway intercepts the request, validates the token, and verifies
+          that the Application has an active subscription for the requested API path.
+    \item On success, the request is fowarded to the corresponding
+          FastAPI backend service and returns the response to the client.
+\end{enumerate}
+
 
 \section{APIs --- ServicesUAPT}
 % TODO: general notes on the FastAPI structure, router pattern, Memcached cache layer
