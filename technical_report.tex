@@ -553,7 +553,62 @@ The API exposes the following endpoints:
 \end{itemize}
 
 \subsection{Rss2Json}
-% TODO
+The RSS to JSON API provides a simple interface for converting RSS feeds into JSON format, 
+making it easier for modern clients and applications to consume RSS content without having 
+to parse XML directly. The API accepts any valid RSS feed URL and returns its contents 
+as a structured JSON object, with optional JSONP support for cross-origin requests.
+\paragraph{}
+A key feature of this API is its caching mechanism. To avoid unnecessary network requests 
+and reduce latency, the API stores the converted feed data in a local cache directory. 
+Each cache file is identified by a SHA-1 hash of the RSS feed URL, ensuring unique cache 
+entries per feed. When a cached version of a feed exists, the API serves it immediately 
+and schedules a background refresh to keep the cache up to date. When no cache exists, 
+the feed is fetched, converted, and stored before being returned to the client.
+\paragraph{}
+This stale-while-revalidate caching strategy ensures that the API always responds quickly, 
+even when the upstream RSS feed is slow or temporarily unavailable, while still keeping 
+the data reasonably fresh.
+
+\subsubsection{RSS2JSON API Implementation Stack}
+The RSS2JSON API was implemented in Python using the FastAPI framework. The application
+architecture relies on several key technologies:
+
+\begin{itemize}
+    \item \textbf{FastAPI} --- the web framework used to define and expose the REST endpoint, 
+          providing automatic OpenAPI documentation generation and request validation;
+    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and 
+          exposing the API through HTTP requests;
+    \item \textbf{httpx} --- an asynchronous HTTP client used to fetch the RSS feed from 
+          the provided URL, supporting redirects and configurable timeouts;
+    \item \textbf{xmltodict} --- used to parse the XML/RSS content into a Python dictionary, 
+          which is then serialized into JSON;
+    \item \textbf{Pydantic} --- used for request parameter validation, ensuring the RSS URL 
+          is provided and correctly formatted.
+\end{itemize}
+
+The API exposes the following endpoint:
+
+\begin{itemize}
+    \item \texttt{GET /rss2json} --- converts a RSS feed to JSON, accepting the following 
+          query parameters:
+    \begin{itemize}
+        \item \textbf{rss} --- the URL of the RSS feed to convert (required, must be URL-encoded);
+        \item \textbf{callback} --- an optional JavaScript function name; when provided, 
+              the response is returned in JSONP format instead of plain JSON, enabling 
+              cross-origin requests from browser-based clients.
+    \end{itemize}
+\end{itemize}
+
+The caching behaviour follows this logic:
+
+\begin{itemize}
+    \item \textbf{Cache hit} --- the cached JSON is served immediately and a background 
+          task is scheduled to refresh the cache asynchronously, without blocking the response;
+    \item \textbf{Cache miss} --- the RSS feed is fetched synchronously, converted to JSON, 
+          stored in the cache, and returned to the client;
+    \item \textbf{Cache storage} --- each feed is stored as a file identified by the 
+          SHA-1 hash of its URL, in a dedicated cache directory within the application.
+\end{itemize}
 
 \subsection{Access Points --- Mock API}
 The API UA platform is not merely a system that centralizes the various services offered by 
