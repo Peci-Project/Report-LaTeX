@@ -492,7 +492,83 @@ exposed entry point.
 % TODO: general notes on the FastAPI structure, router pattern, Memcached cache layer
 
 \subsection{SAS --- Canteen Menus}
-% TODO
+The Canteen Menus API provides access to the University of Aveiro's canteen menu information, 
+exposing the weekly and daily meal schedules for the various canteens across the university 
+campus. The API acts as a compatibility layer over the University of Aveiro's internal WSO2 
+API, maintaining the same response format as the legacy service to ensure backward compatibility 
+with existing clients.
+\paragraph{}
+The API fetches menu data from the UA WSO2 gateway endpoint 
+\texttt{mysas\_mysas/v1/Refeicoes/GetAgendaMenusEntreDatas}, which returns the full week's 
+menu schedule. This data is then filtered in memory according to the requested place and date 
+parameters, avoiding repeated calls to the upstream service for different parameter combinations.
+\paragraph{}
+The canteens covered by this API are Santiago, ESTGA, ESAN, and Restaurante Universitário. 
+Each menu entry exposes the following attributes:
+
+\begin{itemize}
+    \item \textbf{Canteen} --- the full name of the canteen;
+    \item \textbf{Meal} --- the meal period (e.g. Almoço);
+    \item \textbf{Date} --- the date of the menu in ISO 8601 format (\texttt{YYYY-MM-DD});
+    \item \textbf{Items} --- the list of meal components available for that menu.
+\end{itemize}
+
+\subsubsection{Caching Strategy}
+A key feature of the SAS API is its caching mechanism, implemented using Memcached. 
+Rather than fetching data from the upstream WSO2 API on every request, the API stores the 
+full week's menu data in Memcached under a single cache key (\texttt{ementas:all:week}). 
+This cached data is then filtered in memory for each request, making any combination of 
+place and date parameters fast to serve without additional upstream calls.
+\paragraph{}
+The cache expiry is calculated dynamically as the number of seconds remaining until midnight, 
+ensuring the cache is refreshed daily with up-to-date menu information. Additionally, the API 
+supports HTTP caching through \texttt{ETag} and \texttt{Cache-Control} headers --- if the 
+client already holds the current version of the data, the API returns a \texttt{304 Not Modified} 
+response without a body, reducing unnecessary data transfer.
+
+\subsubsection{SAS API Implementation Stack}
+The SAS API was implemented in Python using the FastAPI framework. The application
+architecture relies on several key technologies:
+
+\begin{itemize}
+    \item \textbf{FastAPI} --- the web framework used to define and expose the REST endpoint, 
+          providing automatic OpenAPI documentation generation and request validation;
+    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and 
+          exposing the API through HTTP requests;
+    \item \textbf{Memcached} --- an in-memory caching system used to store the full week's 
+          menu data, reducing the number of upstream requests and improving response times;
+    \item \textbf{pymemcache} --- the Python client library used to communicate with the 
+          Memcached server, providing get, set, and flush operations through a thin wrapper 
+          centralising all cache logic;
+    \item \textbf{requests} --- used to perform HTTP requests to the upstream UA WSO2 API 
+          to fetch the menu data;
+    \item \textbf{xmltodict} and \textbf{dicttoxml} --- used to handle XML serialization 
+          of the response data for the default XML format;
+    \item \textbf{Pydantic} --- used for request parameter validation and configuration 
+          management.
+\end{itemize}
+
+The API exposes the following endpoint:
+
+\begin{itemize}
+    \item \texttt{GET /sas/ementas} --- returns canteen menus, accepting the following 
+          query parameters:
+    \begin{itemize}
+        \item \textbf{place} --- the canteen to filter by; accepted values are 
+              \texttt{santiago}, \texttt{estga}, \texttt{esan}, \texttt{rest}, and 
+              \texttt{all} (default: \texttt{all});
+        \item \textbf{date} --- the time range of menus to return; accepted values are 
+              \texttt{day} for today's menus only and \texttt{week} for the full week 
+              (default: \texttt{day});
+        \item \textbf{format} --- the response format; accepted values are \texttt{xml}, 
+              \texttt{json}, and \texttt{jsonp} (default: \texttt{xml});
+        \item \textbf{cb} --- the JavaScript callback function name, required when 
+              \texttt{format=jsonp};
+        \item \textbf{help} --- when present, redirects the client to the API documentation;
+        \item \textbf{clear\_cache} --- when present, flushes the Memcached cache and 
+              returns a \texttt{200 OK} response.
+    \end{itemize}
+\end{itemize}
 
 \subsection{Parques --- Parking Availability}
 The Parking Lots API provides real-time occupancy information for the University of Aveiro's 
