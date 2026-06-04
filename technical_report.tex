@@ -1,6 +1,6 @@
 \documentclass[12pt, a4paper]{report}
 
-% Packages 
+% ─── Packages ────────────────────────────────────────────────────────────────
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
@@ -20,9 +20,9 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{float}
-\usepackage{lipsum} % Remove when filling in real content
+\usepackage{lipsum}
 
-% Page geometry 
+% ─── Page geometry ───────────────────────────────────────────────────────────
 \geometry{
     a4paper,
     top=2.5cm,
@@ -31,10 +31,10 @@
     right=2.5cm
 }
 
-% Line spacing 
+% ─── Line spacing ────────────────────────────────────────────────────────────
 \onehalfspacing
 
-% Header / footer 
+% ─── Header / footer ─────────────────────────────────────────────────────────
 \setlength{\headheight}{15pt}
 \pagestyle{fancy}
 \fancyhf{}
@@ -42,7 +42,7 @@
 \fancyhead[R]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
-% Hyperlink colours
+% ─── Hyperlink colours ───────────────────────────────────────────────────────
 \hypersetup{
     colorlinks=true,
     linkcolor=black,
@@ -50,7 +50,7 @@
     urlcolor=blue
 }
 
-% Code listing style 
+% ─── Code listing style ──────────────────────────────────────────────────────
 \lstset{
     basicstyle=\ttfamily\small,
     keywordstyle=\color{blue},
@@ -62,12 +62,15 @@
     numberstyle=\tiny\color{gray}
 }
 
-
+% ─────────────────────────────────────────────────────────────────────────────
 %  DOCUMENT
-
+% ─────────────────────────────────────────────────────────────────────────────
 \begin{document}
 
-% Title page 
+% ─── Roman numbering for front matter ────────────────────────────────────────
+\pagenumbering{roman}
+
+% ─── Title page ──────────────────────────────────────────────────────────────
 \begin{titlepage}
     \centering
     \vspace*{1cm}
@@ -75,12 +78,9 @@
     {\large \textbf{Universidade de Aveiro}}\\[0.3cm]
     {\large Departamento de Eletrónica, Telecomunicações e Informática}\\[2cm]
 
-    % \includegraphics[width=0.3\textwidth]{logo}\\[2cm] % uncomment and replace 'logo' with your logo file
-
     {\LARGE \textbf{API UA}}\\[0.5cm]
     {\large Technical Report}\\[0.5cm]
     {\large PECI}\\[2cm]
-
 
     {\large \textbf{Equipa}}\\[0.2cm]
     {\large André Reis: 119814}\\[0.2cm]
@@ -92,42 +92,43 @@
 
     {\large Orientador: Diogo Gomes}\\[2cm]
 
-
     {\large \today}
 
     \vfill
 \end{titlepage}
 
-% Abstract 
-\chapter*{Abstract(mudar)}
+% ─── Abstract ────────────────────────────────────────────────────────────────
+\chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
-% TODO: Write the abstract (150–250 words recommended).
-% Summarise: motivation, problem, approach, main results and conclusions.
+
 For over a decade, the api.web.ua.pt platform served as a vital digital backbone for the University of Aveiro,
 centralizing essential services ranging from canteen menus to academic ticketing. However, as the digital landscape
 evolved, the original infrastructure began to show its age, struggling with outdated security protocols, poor readability,
 and a lack of modern architectural standards. These mounting technical limitations eventually led to the decommissioning
 of the legacy system, sparking the urgent need for a complete, from-the-ground-up rebuild to better serve the modern student body.
-This project outlines the comprehensive modernization of the university’s API ecosystem. The reconstruction began by revitalizing
+This project outlines the comprehensive modernization of the university's API ecosystem. The reconstruction began by revitalizing
 core endpoints—including canteen services (sas), RSS-to-JSON translation tools (Rss2Json), institutional data (ArcGIS),
 real-time parking availability (parques), and academic services (sac). By employing current programming languages and libraries,
-we addressed the fundamental bugs and inefficiencies of the previous system. To safeguard these assets against external threats,
-the new APIs were integrated into a robust WSO2 management layer, unified under the university’s proprietary identity
-provider (IdpUa). The result is a secure, high-performance platform complemented by a dedicated documentation portal
-and an iterative testing framework, ensuring that the university's digital tools are as reliable and accessible as the
+the fundamental bugs and inefficiencies of the previous system were addressed. To safeguard these assets against external threats,
+the new APIs were integrated into a robust WSO2 management layer, unified under Keycloak as the platform's identity
+provider. The result is a secure, high-performance platform complemented by a dedicated documentation portal
+and an interactive testing framework, ensuring that the university's digital tools are as reliable and accessible as the
 services they represent.
 
 \vspace{1em}
 
-% Table of contents
+% ─── Table of contents ───────────────────────────────────────────────────────
 \tableofcontents
-\listoffigures     % remove if you have no figures
-\listoftables      % remove if you have no tables
+\listoffigures
+\listoftables
 
+% ─── Switch to arabic numbering from Chapter 1 onwards ───────────────────────
+\cleardoublepage
+\pagenumbering{arabic}
 
-%  CHAPTER 1 - Introduction
-
-
+% ─────────────────────────────────────────────────────────────────────────────
+%  CHAPTER 1 -- Introduction
+% ─────────────────────────────────────────────────────────────────────────────
 \chapter{Introduction}
 \label{chap:introduction}
 
@@ -179,21 +180,21 @@ platform. The main objectives are:
           for students and developers to discover, understand, and integrate the available APIs;
     \item Design the architecture to be modular and extensible, so that new services can
           be added with minimal effort and no disruption to existing ones.
-    \item \textbf{FAZER A NOVA API MOCK?}
 \end{itemize}
 
-\section{Document Structure(mudar)}
-This report is organised into four chapters. Chapter~\ref{chap:related_work} surveys
+\section{Document Structure}
+This report is organised into five chapters. Chapter~\ref{chap:related_work} surveys
 existing solutions and API gateway platforms, and presents the tools and technologies
 selected for the project, justifying each choice. Chapter~\ref{chap:requirements}
-covers the requirements elicitation process --- both functional and non-functional ---
-and provides a detailed description of the system architecture and its constituent layers.
-Chapter~\ref{chap:expected_results} outlines the expected outcomes of the project,
-the planned deliverables, the evaluation criteria, and the development schedule.
+covers the requirements elicitation process and provides a high-level description of
+the system architecture. Chapter~\ref{chap:implementation} details the implementation
+of each architectural component, including configuration, local development environment,
+and integration between services. Chapter~\ref{chap:results} outlines the expected
+outcomes and evaluates the results achieved against the initial objectives.
 
-
-%  CHAPTER 2 - Related Work, Tools and Technologies
-
+% ─────────────────────────────────────────────────────────────────────────────
+%  CHAPTER 2 -- Related Work, Tools and Technologies
+% ─────────────────────────────────────────────────────────────────────────────
 \chapter{Related Work, Tools and Technologies}
 \label{chap:related_work}
 
@@ -237,7 +238,7 @@ a more sustainable, secure and governable integration layer for present and
 future UA systems.
 
 \subsection{Commercial API Management Platforms}
- 
+
 Several commercial and open-source API management platforms address problems
 similar to those this project aims to solve. \textbf{Kong Gateway} is a widely adopted
 open-source API gateway, offering plugins for authentication,
@@ -246,28 +247,28 @@ but requires significant infrastructure investment and operational expertise to 
 and maintain at scale. Given that one of the core goals of this project is long-term
 sustainability and ease of handover to future development teams, introducing a platform
 with such operational complexity would be counterproductive.
- 
+
 \textbf{AWS API Gateway} and \textbf{Azure API Management} are fully managed cloud
 offerings that eliminate the operational burden of running gateway infrastructure.
 Both provide built-in support for OpenAPI specifications, OAuth2 integration, and
 developer portals. However, as hosted proprietary services, they introduce vendor
 lock-in and are unsuitable for an institutional deployment that must remain under
 the university's control and on-premises.
- 
+
 \textbf{RapidAPI} represents a different model, functioning primarily as a marketplace
 and developer portal for discovering and testing third-party APIs. Its interactive
 testing interface --- which allows developers to issue live requests directly from
 the documentation page --- was a direct source of inspiration for the
 \textit{Academic Playground \& Innovation} portal developed in this project.
- 
+
 \subsection{Comparable Institutional Platforms}
- 
+
 Beyond commercial offerings, several universities and public institutions have
 developed API platforms to expose institutional data to their communities.
 MIT's \textit{Atlas} and Stanford's developer portals follow a similar model:
 centralised access to institutional data through authenticated APIs, with
 developer documentation and sandbox environments.
- 
+
 The common thread across these platforms is the separation between the
 \textit{gateway layer} --- responsible for security, routing, and governance ---
 and the \textit{backend services} that implement the actual business logic.
@@ -275,11 +276,9 @@ This separation is a key architectural principle adopted in this project, and on
 that was notably absent from the legacy system, where security concerns, business
 logic, and data access were all handled within the same tightly coupled PHP codebase
 with no clear boundaries between layers.
- 
-% ───────────────────────────────
- 
+
 \section{Tools and Technologies}
- 
+
 \subsection{Python and FastAPI}
 Python was selected as the primary implementation language for the backend services.
 Its extensive ecosystem, readability, and widespread adoption in both academia and
@@ -291,25 +290,28 @@ runtime, eliminating the need to maintain separate API specification files.
 This tight integration between code and documentation is particularly valuable
 in a context where the OpenAPI specification is consumed directly by both the
 WSO2 gateway and the developer portal.
- 
+
 \subsection{WSO2 API Manager}
 WSO2 API Manager is an open-source, on-premises API management platform that provides
 a complete solution for publishing, securing, monitoring, and governing APIs. It was
 selected for this project because it supports the full OAuth2 authorization code flow
 natively, integrates with external identity providers via OpenID Connect --- enabling
-seamless federation with UA's \texttt{idp.ua.pt} --- and exposes a standards-based
+seamless federation with the Keycloak instance --- and exposes a standards-based
 management interface that can ingest OpenAPI specifications directly. Its open-source
 nature and on-premises deployment model ensure that the university retains full control
 over the platform without dependency on third-party cloud providers.
- 
-\subsection{OAuth2 and \texttt{idp.ua.pt}(agora é keycloack não?)}
+
+\subsection{Keycloak}
 Authentication and authorisation are handled through the OAuth2 protocol, delegated
-to the University of Aveiro's institutional identity provider (\texttt{idp.ua.pt}).
-This approach ensures that access to private APIs is gated behind the same credentials
-used across all university systems, without requiring users to manage separate accounts.
-The WSO2 gateway acts as the OAuth2 resource server, validating tokens issued by
-\texttt{idp.ua.pt} before forwarding requests to the backend.
- 
+to a \textbf{Keycloak} instance configured with a dedicated \texttt{ua} realm. Keycloak
+was chosen for its mature support for OAuth2 and OpenID Connect, its flexible
+role-based access control, and its ability to federate with external identity providers.
+The WSO2 gateway validates tokens issued by Keycloak before forwarding requests to
+the backend, and access scopes are mapped to user roles --- \texttt{admin},
+\texttt{professor}, and \texttt{aluno} --- allowing fine-grained control over which
+endpoints each profile can consume. The Docusaurus developer portal is also integrated
+with Keycloak, enabling users to authenticate directly from the documentation interface.
+
 \subsection{Docusaurus and Stoplight Elements}
 The developer portal is built with \textbf{Docusaurus}, a React-based static site
 generator maintained by Meta. It was chosen for its native support for Markdown and
@@ -319,7 +321,7 @@ API testing is provided by \textbf{Stoplight Elements}, an open-source React com
 that renders a full API explorer from an OpenAPI specification. All test requests issued
 through the portal are routed through the WSO2 gateway, ensuring that the developer
 experience accurately reflects production behaviour.
- 
+
 \subsection{Memcached}
 Memcached is a high-performance, in-memory key-value store used in this project to
 cache upstream API responses. Given that certain data sources --- such as the UA WSO2
@@ -328,167 +330,166 @@ once per day, caching responses eliminates redundant upstream calls
 and significantly reduces response times for end consumers. Memcached was preferred
 over alternatives such as Redis for its simplicity and minimal resource footprint,
 which is particularly relevant given the constrained hardware available for deployment.
- 
-\subsection{Docker and Kubernetes(usamos kubernetes?)}
-All backend services are containerised using \textbf{Docker}, ensuring environment
-consistency across development, testing, and production. Orchestration is handled
-by \textbf{Kubernetes}, using the cluster infrastructure provided by the University
-of Aveiro. Kubernetes enables declarative deployment, automatic restarts on failure,
-horizontal scaling, and rolling updates with no downtime --- addressing the reliability
-and scalability requirements that the legacy platform was unable to meet.
 
-\subsection{Grafana and Loki}
-For monitoring and logging, the platform integrates with \textbf{Grafana} and \textbf{Loki}.
+\subsection{Grafana, Loki and Promtail}
+Platform observability is provided by \textbf{Grafana} and \textbf{Loki}.
+Loki collects and indexes logs produced by the WSO2 API Manager, while Grafana
+provides a dashboard layer for visualising API usage metrics, error rates, and
+traffic patterns per endpoint. Log ingestion is handled by \textbf{Promtail},
+which ships WSO2 logs to Loki in real time. A pre-provisioned dashboard is
+included in the repository, giving operators an immediate view of platform health
+without manual configuration.
 
-\subsection{SQL}
+\subsection{Docker}
+All platform components are containerised using \textbf{Docker} and orchestrated
+via \textbf{Docker Compose}. The services run on a private Docker network
+(\texttt{gateway-net}), isolating them from external access. WSO2 API Manager is
+the only component exposed externally, acting as the single entry point for all
+API traffic.
 
-
-
-%  CHAPTER 3 - Requirements Elicitation and Architecture
-
-\chapter{Requirements Elicitation and Architecture}
+% ─────────────────────────────────────────────────────────────────────────────
+%  CHAPTER 3 -- Requirements and Architecture Overview
+% ─────────────────────────────────────────────────────────────────────────────
+\chapter{Requirements and Architecture Overview}
 \label{chap:requirements}
 
 \section{Requirements Elicitation}
-% TODO: Explain how requirements were gathered (interviews, surveys, etc.).
-The requirements for this project is a very important part of the development process, as they will guide the design and implementation of the system. 
-To gather these requirements, we talked to STIC (the most important stackeholder in this project) and our supervisor, Diogo Gomes. 
+The requirements for this project were gathered through direct engagement with the
+primary stakeholders. Meetings with STIC (Serviços de Tecnologias de Informação e
+Comunicação) and the project supervisor, Diogo Gomes, provided the functional and
+non-functional constraints that shaped the architecture.
 
 \subsection{Functional Requirements}
-% TODO: List and describe the functional requirements.
 \begin{itemize}
-    \item \textbf{FR1 – Service Centralization and Exposure:} A WSO2 layer must exist that acts as a centralized API Gateway to expose the University of Aveiro's services uniformly.
-    \item \textbf{FR2 – Identity and Permissions:} The system must implement authentication and authorization mechanisms, ensuring access control per API according to each user's profile.
-    \item \textbf{FR3 – Control and Monitoring:} The platform must allow detailed control and monitoring of all service accesses, including logging and traceability of calls made.
-    \item \textbf{FR4 – Documentation Availability:} Documentation must be available for the use of each API, including description of endpoints, parameters, authentication, and usage examples.
-    \item \textbf{FR5 – Continuity and Compatibility:} The platform must maintain the same endpoints, ensuring compatibility with already integrated systems and avoiding service interruptions.
+    \item \textbf{FR1 -- Service Centralisation and Exposure:} A WSO2 layer must exist
+          that acts as a centralised API Gateway to expose the University of Aveiro's
+          services uniformly.
+    \item \textbf{FR2 -- Identity and Permissions:} The system must implement
+          authentication and authorisation mechanisms, ensuring access control per API
+          according to each user's profile.
+    \item \textbf{FR3 -- Control and Monitoring:} The platform must allow detailed
+          control and monitoring of all service accesses, including logging and
+          traceability of calls made.
+    \item \textbf{FR4 -- Documentation Availability:} Documentation must be available
+          for the use of each API, including description of endpoints, parameters,
+          authentication, and usage examples.
+    \item \textbf{FR5 -- Continuity and Compatibility:} The platform must maintain the
+          same endpoints, ensuring compatibility with already integrated systems and
+          avoiding service interruptions.
 \end{itemize}
 
 \subsection{Non-Functional Requirements}
-% TODO: List and describe the non-functional requirements (performance, security, etc.).
 \begin{itemize}
-    \item \textbf{NFR1 – Security:} The system must comply with security best practices, mitigating vulnerabilities identified in the previous solution and protecting data and access.
-    \item \textbf{NFR2 – Performance:} API requests must be processed, under normal operating conditions, in less than 3 seconds.
-    \item \textbf{NFR3 – Technical Scalability:} The API Gateway must support increased load and growth in the number of consumers without significant service degradation.
-    \item \textbf{NFR4 – Functional Scalability:} The introduction and integration of new APIs must be simple, quick, and have minimal impact on existing services.
-    \item \textbf{NFR5 – Maintainability:} The system must adopt software development best practices and keep code readable, modular, and well-documented to facilitate corrective, evolutionary, and preventive maintenance.
-    \item \textbf{NFR6 – Interface Usability:} The documentation portal must present a simple, clear, and intuitive interface, promoting the adoption and use of available services.
+    \item \textbf{NFR1 -- Security:} The system must comply with security best
+          practices, mitigating vulnerabilities identified in the previous solution.
+    \item \textbf{NFR2 -- Performance:} API requests must be processed in less than
+          3 seconds under normal operating conditions.
+    \item \textbf{NFR3 -- Technical Scalability:} The API Gateway must support
+          increased load and growth in the number of consumers without significant
+          service degradation.
+    \item \textbf{NFR4 -- Functional Scalability:} The introduction and integration
+          of new APIs must be simple, quick, and have minimal impact on existing services.
+    \item \textbf{NFR5 -- Maintainability:} The system must adopt software development
+          best practices and keep code readable, modular, and well-documented.
+    \item \textbf{NFR6 -- Interface Usability:} The documentation portal must present
+          a simple, clear, and intuitive interface, promoting adoption of the available
+          services.
 \end{itemize}
 
-\section{System Architecture(mudar todos os pontos quase)}
+\section{Architecture Overview}
 The platform is organised into four distinct layers, as illustrated in
 Figure~\ref{fig:architecture}: the \textit{User Interface}, the \textit{WSO2 API Gateway},
-the \textit{FastAPI backend}, and the \textit{Backend data sources}.
- 
+the \textit{FastAPI Backend}, and the \textit{Backend Data Sources}. All components run
+on a private Docker network (\texttt{gateway-net}), with WSO2 as the sole externally
+exposed entry point.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/architecture_diagram.png}
     \caption{System Architecture Overview}
     \label{fig:architecture}
 \end{figure}
- 
+
 \subsection{User Interface --- Academic Playground \& Innovation}
-The user-facing layer is the \textit{Academic Playground \& Innovation} portal. It serves
-two purposes: providing documentation on how to use each API, and allowing interactive
-testing of all available endpoints directly in the browser. The goal here is to make it 
-easy for people to learn how to integrate the APIs available in their own projetcs, as after 
-they are familiar with the methods there is no real use for this layer.
-\medskip
+% TODO: high-level description only — detail goes in Chapter 4
 
-The portal was developed using \textbf{Docusaurus}, a static site generator built on
-React and maintained by Meta. This choice is justified by its native support for Markdown
-and MDX, built-in documentation versioning, and ease of maintenance --- updating content
-requires only editing text files, with no need to touch application code, this also facilitates
-escalating the number of APIs, as it's easy to make a complete documentation about all it's methods.
-The \textit{Academic Playground \& Innovation} portal provides interactive testing of all
-available endpoints directly in the browser, following the same approach used by platforms
-such as RapidAPI (wich heavily inspired this front-end). This is achieved by embedding \textbf{Stoplight Elements} into the
-Docusaurus site, which renders a full API explorer from the OpenAPI specification generated
-automatically by FastAPI.
+\subsection{WSO2 API Gateway}
+% TODO: high-level description only — detail goes in Chapter 4
 
-Rather than communicating with the FastAPI backend directly, all test requests issued from
-the portal are routed through the \textbf{WSO2 API Gateway}, the same path taken by any
-external consumer. This is accomplished by setting the WSO2 public endpoint as the target
-server in the OpenAPI specification:
+\subsection{FastAPI Backend --- ServicesUAPT}
+% TODO: high-level description only — detail goes in Chapter 4
 
-\begin{lstlisting}[caption={OpenAPI server configuration targeting WSO2}]
-{
-  "servers": [
-    { "url": "https://api.ua.pt/v1" }
-  ]
-}
-\end{lstlisting}
+\subsection{Backend Data Sources}
+% TODO: high-level description only — detail goes in Chapter 4
 
-With this configuration, the portal's test interface reflects the real behaviour of the
-platform in production --- including authentication, rate limiting, and request routing ---
-rather than bypassing the gateway layer. For public APIs, such as the canteen menus, no
-credentials are required and requests can be issued immediately. For private APIs, Stoplight
-Elements supports OAuth2 flows natively, allowing users to authenticate with their
-institutional credentials via \texttt{idp.ua.pt} and have the resulting token attached
-automatically to all subsequent test requests.
+\subsection{Monitoring}
+% TODO: high-level description only — detail goes in Chapter 4
 
-\subsection{WSO2 API Gateway Layer}
-All requests from the portal pass through a WSO2 API Manager instance, which acts as the
-central API Gateway for the platform. 
-For the test requests explained in the previous layer to function correctly from a browser context, 
-the WSO2 instance must be configured to include the appropriate \texttt{Access-Control-Allow-Origin} headers 
-in its responses, permitting cross-origin requests originating from the portal's domain.
-\medskip
-This layer is responsible for:
- 
-\begin{itemize}
-    \item \textbf{Authentication and authorisation} --- identity verification for private APIs
-          is delegated to \texttt{idp.ua.pt} via OAuth2, this ensures institutional credentials
-          are being requested correctly from UA's official identity provider;
-    \item \textbf{Request routing} --- the gateway forwards validated requests to the appropriate
-          ServicesUAPT service;
-    \item \textbf{Monitoring and rate limiting} --- all inbound traffic is logged and can be
-          controlled centrally without changes to the backend.
-\end{itemize}
- 
-Public APIs (such as the canteen menus) are accessible without authentication, while APIs
-that expose sensitive data require a valid OAuth2 token issued by the university's identity
-provider.
- 
-% TODO: add details about how the WSO2 instance is deployed on the Kubernetes cluster.
- 
-\subsection{FastAPI Backend - ServicesUAPT}
-The core logic of each service is implemented in Python using the FastAPI framework. This layer is completely
-replacing the old ServicesUAPT wich was very outdated. 
-Each service is isolated in its own router module, making it straightforward to add, remove, or
-update individual APIs without affecting the rest of the platform. The services currently
-implemented or planned are:
- 
-\begin{itemize}
-    \item \textbf{SAC} --- queue ticket numbers for the Academic Services office;
-    \item \textbf{ArcGIS} --- data about university buildings and campus units;
-    \item \textbf{Estacionamento UA} --- real-time parking availability;
-    \item \textbf{SAS} --- canteen menus, consumed from the UA WSO2 API and cached via Memcached;
-    \item \textbf{Rss2Json} --- generic RSS feed to JSON converter;
-    \item (Additional services to be integrated in future iterations).
-\end{itemize}
- 
-FastAPI was chosen because it generates OpenAPI-compliant documentation automatically,
-which integrates directly with the WSO2 gateway and removes the need to maintain separate
-API specifications.
+% ─────────────────────────────────────────────────────────────────────────────
+%  CHAPTER 4 -- Implementation
+% ─────────────────────────────────────────────────────────────────────────────
+\chapter{Implementation}
+\label{chap:implementation}
 
-\subsection{Mock API Access Points}
+\section{Local Development Environment}
+% TODO: describe the Docker Compose setup, gateway-net, volumes, Makefile/run.sh,
+%       and how to bring the full stack up locally
+
+\section{WSO2 API Manager}
+% TODO: deployment.toml configuration, API registration, apictl export/import,
+%       OAuth2 scope mapping, CORS headers, rate limiting policies
+
+\subsection{Configuration}
+% TODO
+
+\subsection{API Registration and Lifecycle}
+% TODO: how APIs are exported with apictl and imported automatically on startup
+
+\subsection{Access Control and Scopes}
+% TODO: how roles (admin/professor/aluno) map to API scopes in WSO2
+
+\section{Keycloak}
+% TODO: ua realm configuration, client setup, role definitions,
+%       token flow with WSO2
+
+\subsection{Realm Configuration}
+% TODO
+
+\subsection{User Roles and Clients}
+% TODO
+
+\subsection{Integration with WSO2}
+% TODO: how WSO2 validates Keycloak tokens (401 issue and resolution)
+
+\section{APIs --- ServicesUAPT}
+% TODO: general notes on the FastAPI structure, router pattern, Memcached cache layer
+
+\subsection{SAS --- Canteen Menus}
+% TODO
+
+\subsection{Parques --- Parking Availability}
+% TODO
+
+\subsection{Rss2Json}
+% TODO
+
+\subsection{Access Points --- Mock API}
 The API UA platform is not merely a system that centralizes the various services offered by 
 the University of Aveiro. Rather, it is designed to facilitate easy integration of new APIs 
 that may be developed in the future. To demonstrate this extensibility, we created a mock API 
-to simulate the integration of new web services into the platform.
-
+to simulate the integration of new web services into the platform. 
+\paragraph{}
 Our supervisor recommended developing a mock API for the University of Aveiro's access points, 
 containing useful information such as their geographical locations, maximum connection capacity, 
 and other data relevant to the academic community.
-
+\paragraph{}
 To store the mock API data we created a MySQL database hosted on the IETTA infrastructure. 
 This decision was driven by the fact that, concurrently with this project, we attended 
 a relational databases course that provided access to the IETTA database for class exercises 
 and the course project. Given that existing access and the operational convenience it provided, 
 we obtained permission from the course coordinator to use the IETTA database for persisting 
 the data for our mock API.
-
+\paragraph{}
 The database schema contains two primary tables: one for access points and another for the 
 departments where each access point is located. Each table includes several attributes, 
 which are represented in the entity–relationship diagram (ERD) shown in Figure~(\ref{fig:mock_api_erd}). 
@@ -513,45 +514,71 @@ conflicts with other system installations. The application architecture relies o
 
 The overall architecture diagram is shown in Figure~(\ref{fig:mock_api_architecture}), illustrating 
 the integration of these components within the broader API UA platform.
- 
-\subsection{Data Sources (Backend)}
-Depending on the service, the FastAPI layer consumes data from one of this sources:
-
-\begin{itemize}
-    \item \textbf{CSV File} --- used by the SAC service for persistent storage of queue
-          ticket data, written and read directly from a local CSV file;
-    \item \textbf{SOAP Client} --- used by the SAC service to interface with the legacy
-          university systems that expose SOAP/XML web services;
-    \item \textbf{WSO2 UA} --- the university's own API Gateway, consumed by services
-          such as SAS to retrieve data like canteen menus and parking availability.
-    \item \textbf{SQL} --- ola ola
-\end{itemize}
- 
-% TODO: describe the Kubernetes cluster and container orchestration.
-The platform is containerised using Docker and deployed on the University of Aveiro's
-Kubernetes cluster, ensuring availability, scalability, and ease of rolling updates.
 
 
-%  CHAPTER 4 – Expected Results
+\section{Academic Playground \& Innovation --- Documentation Portal}
+% TODO: Docusaurus structure, Stoplight Elements integration,
+%       Keycloak login from the portal, Open
+API spec pointing to WSO2
 
-\chapter{Expected Results(mudar?)}
-\label{chap:expected_results}
-% TODO: Describe what you expect to achieve at the end of the project.
-At the end of this project the expected result is to have a fully operational platform that operates 
-in accordance with the objectives that were proposed. The system will be completely secured, operating 
-with the university's identity provider (IdpUA), to prevent any unwanted access to the private APIs 
-implemented. The platform should also be intuitive and easy to use by students, professors and external 
-developers alike that aim to integrate any of the available APIs into their own projects. To support 
-this, a comprehensive documentation website will be created, covering each endpoint and method available, 
-alongside an interactive testing mechanism that allows users to try all those methods directly in the 
-browser. Due to the modernization and different implementations, such as the usage of Memcached caching 
-and other technologies, responses are expected to be processed in under 3 seconds under normal operating 
-conditions. Finally, all the work done will remain compatible with systems already integrated with 
-the previous platform, as the endpoints will stay the same, avoiding service disruption and ensuring 
-continuity for existing consumers.
+\subsection{Structure and Content}
+% TODO
+
+\subsection{Interactive Testing}
+% TODO
+
+\subsection{Keycloak Integration}
+% TODO
+
+\section{Monitoring --- Grafana, Loki and Promtail}
+% TODO: Promtail configuration, Loki datasource, Grafana dashboard provisioning,
+%       what metrics are exposed and how to read the dashboard
+
+\subsection{Log Collection with Promtail and Loki}
+% TODO
+
+\subsection{Grafana Dashboard}
+% TODO
+
+% ─────────────────────────────────────────────────────────────────────────────
+%  CHAPTER 5 -- Results
+% ─────────────────────────────────────────────────────────────────────────────
+\chapter{Results}
+\label{chap:results}
+
+\section{Expected Results}
+At the end of this project the expected result is to have a fully operational platform
+that operates in accordance with the objectives that were proposed. The system will be
+completely secured, operating with Keycloak as the identity provider, to prevent any
+unwanted access to the private APIs implemented. The platform should also be intuitive
+and easy to use by students, professors and external developers alike that aim to
+integrate any of the available APIs into their own projects. To support this, a
+comprehensive documentation website will be created, covering each endpoint and method
+available, alongside an interactive testing mechanism that allows users to try all those
+methods directly in the browser. Due to the modernization and different implementations,
+such as the usage of Memcached caching and other technologies, responses are expected to
+be processed in under 3 seconds under normal operating conditions. Finally, all the work
+done will remain compatible with systems already integrated with the previous platform,
+as the endpoints will stay the same, avoiding service disruption and ensuring continuity
+for existing consumers.
+
+\section{Achieved Results}
+% TODO: fill in at the end of the project — compare against expected results above,
+%       include performance measurements, security validation, API coverage, etc.
+
+\subsection{APIs Delivered}
+% TODO
+
+\subsection{Security and Access Control}
+% TODO
+
+\subsection{Performance}
+% TODO
+
+\subsection{Known Limitations and Future Work}
+% TODO
 
 \section{Projected Schedule}
-% TODO: Present a timeline (e.g. a Gantt chart or a simple table).
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/schedule.png}
@@ -559,15 +586,18 @@ continuity for existing consumers.
     \label{fig:schedule}
 \end{figure}
 
-The planned work is organised into seven main tasks, distributed between February and June. 
-Website and documentation activities span almost the entire period, providing continuous support to the remaining tasks. 
-Initial weeks focus on task organisation and the refactoring of existing services, followed by the implementation and stabilisation of the core institutional APIs. 
-In the final phase, additional APIs are integrated and the project report is completed, ensuring that the technical work is accompanied by up‑to‑date documentation and validation milestones.
+The planned work is organised into seven main tasks, distributed between February and
+June. Website and documentation activities span almost the entire period, providing
+continuous support to the remaining tasks. Initial weeks focus on task organisation and
+the refactoring of existing services, followed by the implementation and stabilisation
+of the core institutional APIs. In the final phase, additional APIs are integrated and
+the project report is completed, ensuring that the technical work is accompanied by
+up-to-date documentation and validation milestones.
 
-
+% ─────────────────────────────────────────────────────────────────────────────
 %  Bibliography
-
+% ─────────────────────────────────────────────────────────────────────────────
 \bibliographystyle{plain}
-\bibliography{references} 
+\bibliography{references}
 
 \end{document}
