@@ -1,6 +1,6 @@
 \documentclass[12pt, a4paper]{report}
 
-% ─── Packages ────────────────────────────────────────────────────────────────
+% Packages 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
@@ -22,7 +22,7 @@
 \usepackage{float}
 \usepackage{lipsum} % Remove when filling in real content
 
-% ─── Page geometry ───────────────────────────────────────────────────────────
+% Page geometry 
 \geometry{
     a4paper,
     top=2.5cm,
@@ -31,10 +31,10 @@
     right=2.5cm
 }
 
-% ─── Line spacing ────────────────────────────────────────────────────────────
+% Line spacing 
 \onehalfspacing
 
-% ─── Header / footer ─────────────────────────────────────────────────────────
+% Header / footer 
 \setlength{\headheight}{15pt}
 \pagestyle{fancy}
 \fancyhf{}
@@ -42,7 +42,7 @@
 \fancyhead[R]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
-% ─── Hyperlink colours ───────────────────────────────────────────────────────
+% Hyperlink colours
 \hypersetup{
     colorlinks=true,
     linkcolor=black,
@@ -50,7 +50,7 @@
     urlcolor=blue
 }
 
-% ─── Code listing style ──────────────────────────────────────────────────────
+% Code listing style 
 \lstset{
     basicstyle=\ttfamily\small,
     keywordstyle=\color{blue},
@@ -62,12 +62,12 @@
     numberstyle=\tiny\color{gray}
 }
 
-% ─────────────────────────────────────────────────────────────────────────────
+
 %  DOCUMENT
-% ─────────────────────────────────────────────────────────────────────────────
+
 \begin{document}
 
-% ─── Title page ──────────────────────────────────────────────────────────────
+% Title page 
 \begin{titlepage}
     \centering
     \vspace*{1cm}
@@ -98,7 +98,7 @@
     \vfill
 \end{titlepage}
 
-% ─── Abstract ────────────────────────────────────────────────────────────────
+% Abstract 
 \chapter*{Abstract(mudar)}
 \addcontentsline{toc}{chapter}{Abstract}
 % TODO: Write the abstract (150–250 words recommended).
@@ -119,14 +119,15 @@ services they represent.
 
 \vspace{1em}
 
-% ─── Table of contents ───────────────────────────────────────────────────────
+% Table of contents
 \tableofcontents
 \listoffigures     % remove if you have no figures
 \listoftables      % remove if you have no tables
 
-% ─────────────────────────────────────────────────────────────────────────────
-%  CHAPTER 1 – Introduction
-% ─────────────────────────────────────────────────────────────────────────────
+
+%  CHAPTER 1 - Introduction
+
+
 \chapter{Introduction}
 \label{chap:introduction}
 
@@ -189,9 +190,10 @@ covers the requirements elicitation process --- both functional and non-function
 and provides a detailed description of the system architecture and its constituent layers.
 Chapter~\ref{chap:expected_results} outlines the expected outcomes of the project,
 the planned deliverables, the evaluation criteria, and the development schedule.
-% ─────────────────────────────────────────────────────────────────────────────
-%  CHAPTER 2 – Related Work, Tools and Technologies
-% ─────────────────────────────────────────────────────────────────────────────
+
+
+%  CHAPTER 2 - Related Work, Tools and Technologies
+
 \chapter{Related Work, Tools and Technologies}
 \label{chap:related_work}
 
@@ -274,7 +276,7 @@ that was notably absent from the legacy system, where security concerns, busines
 logic, and data access were all handled within the same tightly coupled PHP codebase
 with no clear boundaries between layers.
  
-% ─────────────────────────────────────────────────────────────────────────────
+% ───────────────────────────────
  
 \section{Tools and Technologies}
  
@@ -341,9 +343,9 @@ For monitoring and logging, the platform integrates with \textbf{Grafana} and \t
 \subsection{SQL}
 
 
-% ─────────────────────────────────────────────────────────────────────────────
-%  CHAPTER 3 – Requirements Elicitation and Architecture
-% ─────────────────────────────────────────────────────────────────────────────
+
+%  CHAPTER 3 - Requirements Elicitation and Architecture
+
 \chapter{Requirements Elicitation and Architecture}
 \label{chap:requirements}
 
@@ -471,9 +473,34 @@ which integrates directly with the WSO2 gateway and removes the need to maintain
 API specifications.
 
 \subsection{Mock API Access Points}
-Introdução, Arquitetura(foto) - Pedro 
+The API UA platform is not merely a system that centralizes the various services offered by 
+the University of Aveiro. Rather, it is designed to facilitate easy integration of new APIs 
+that may be developed in the future. To demonstrate this extensibility, we created a mock API 
+to simulate the integration of new web services into the platform.
+
+Our supervisor recommended developing a mock API for the University of Aveiro's access points, 
+containing useful information such as their geographical locations, maximum connection capacity, 
+and other data relevant to the academic community.
+
+To store the mock API data we created a MySQL database hosted on the IETTA infrastructure. 
+This decision was driven by the fact that, concurrently with this project, we attended 
+a relational databases course that provided access to the IETTA database for class exercises 
+and the course project. Given that existing access and the operational convenience it provided, 
+we obtained permission from the course coordinator to use the IETTA database for persisting 
+the data for our mock API.
+
+The database schema contains two primary tables: one for access points and another for the 
+departments where each access point is located. Each table includes several attributes, 
+which are represented in the entity–relationship diagram (ERD) shown in Figure~(...). 
+The ERD was designed to organise and document the database structure.
+
 Flask, environment python, DER -Carlos
-sql (explicar acesso ao IEETA e porque) -Pedro
+
+
+The following architecture was designed:
+
+-->  Arquitetura(foto) - Pedro 
+
 (EM DESENVOLVIMENTO)
  
 \subsection{Data Sources (Backend)}
@@ -493,9 +520,9 @@ Depending on the service, the FastAPI layer consumes data from one of this sourc
 The platform is containerised using Docker and deployed on the University of Aveiro's
 Kubernetes cluster, ensuring availability, scalability, and ease of rolling updates.
 
-% ─────────────────────────────────────────────────────────────────────────────
+
 %  CHAPTER 4 – Expected Results
-% ─────────────────────────────────────────────────────────────────────────────
+
 \chapter{Expected Results(mudar?)}
 \label{chap:expected_results}
 % TODO: Describe what you expect to achieve at the end of the project.
@@ -526,9 +553,9 @@ Website and documentation activities span almost the entire period, providing co
 Initial weeks focus on task organisation and the refactoring of existing services, followed by the implementation and stabilisation of the core institutional APIs. 
 In the final phase, additional APIs are integrated and the project report is completed, ensuring that the technical work is accompanied by up‑to‑date documentation and validation milestones.
 
-% ─────────────────────────────────────────────────────────────────────────────
+
 %  Bibliography
-% ─────────────────────────────────────────────────────────────────────────────
+
 \bibliographystyle{plain}
 \bibliography{references} 
 
