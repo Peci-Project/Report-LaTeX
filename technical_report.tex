@@ -520,9 +520,16 @@ departments where each access point is located. Each table includes several attr
 which are represented in the entity–relationship diagram (ERD) shown in Figure~(\ref{fig:mock_api_erd}). 
 The ERD was designed to organise and document the database structure.
 
+\begin{figure}[H]
+      \centering
+      \includegraphics[width=0.95\textwidth]{figures/der_access_points.png}
+      \caption{Entity-Relationship Diagram for the Mock API Access Points Database}
+      \label{fig:mock_api_erd}
+\end{figure}
+
 \subsubsection{Mock API Implementation Stack}
 
-The mock API was implemented in Python using a Flask application running on a virtual environment 
+The mock API was implemented in Python, running on a virtual environment 
 to isolate project dependencies and ensure a controlled, reproducible development environment without 
 conflicts with other system installations. The application architecture relies on several key technologies:
 
