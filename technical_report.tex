@@ -491,24 +491,28 @@ the data for our mock API.
 
 The database schema contains two primary tables: one for access points and another for the 
 departments where each access point is located. Each table includes several attributes, 
-which are represented in the entity–relationship diagram (ERD) shown in Figure~(...). 
+which are represented in the entity–relationship diagram (ERD) shown in Figure~(\ref{fig:mock_api_erd}). 
 The ERD was designed to organise and document the database structure.
 
-Flask, environment python, DER -Carlos
+\subsubsection{Mock API Implementation Stack}
 
-The following architecture was designed:
+The mock API was implemented in Python using a Flask application running on a virtual environment 
+to isolate project dependencies and ensure a controlled, reproducible development environment without 
+conflicts with other system installations. The application architecture relies on several key technologies:
 
--->  Arquitetura(foto) - Pedro 
+\begin{itemize}
+    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and exposing 
+          the API through HTTP requests;
+    \item \textbf{PyODBC} --- the library used to establish the connection between the Python application
+          and the SQL Server database, using the ODBC protocol;
+    \item \textbf{ODBC} --- a standard that enables access to different database management systems 
+          in a uniform and language-independent way, providing database abstraction;
+    \item \textbf{Virtual Environment} --- isolates the project's dependencies and ensures reproducibility
+          without conflicts with other system installations.
+\end{itemize}
 
-Explaining each function of the tecnology:
-Uvicorn is the ASGI server responsible for running the application and exposing the API
-through HTTP requests.PyODBC is the library used to establish the connection between the Python application
-and the SQL Server database, using the ODBC protocol. 
-ODBC is a standard that enables access to different database management systems in a uniform 
-and language-independent way. In turn, the virtual environment is used to isolate the project's dependencies, 
-ensuring a controlled, reproducible development environment without conflicts with other system installations.
-
-(EM DESENVOLVIMENTO)
+The overall architecture diagram is shown in Figure~(\ref{fig:mock_api_architecture}), illustrating 
+the integration of these components within the broader API UA platform.
  
 \subsection{Data Sources (Backend)}
 Depending on the service, the FastAPI layer consumes data from one of this sources:
