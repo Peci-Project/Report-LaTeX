@@ -113,22 +113,40 @@
 \end{titlepage}
 
 % ─── Abstract ────────────────────────────────────────────────────────────────
+
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
+ 
+For over a decade, the \texttt{api.web.ua.pt} platform served as the University of
+Aveiro's centralised web services infrastructure, exposing institutional data --- from
+canteen menus to parking availability --- to students, faculty, and third-party
+developers. The platform was eventually decommissioned due to critical security
+vulnerabilities in its end-of-life PHP stack, poor performance under concurrent load,
+and a tightly coupled codebase that made maintenance and extension increasingly
+impractical.
+ 
+This project delivers a complete, production-equivalent replacement built on modern
+technologies. The backend services --- covering canteen menus, real-time parking
+availability, RSS feed conversion, and a mock API for university access points --- were
+reimplemented in Python using FastAPI, preserving the original endpoints to ensure
+backward compatibility with existing consumers. A WSO2 API Manager instance acts as
+the sole externally exposed gateway, handling token validation, subscription enforcement,
+and rate limiting. Authentication is centralised in a Keycloak instance configured with
+a dedicated university realm, supporting role-based access control across three consumer
+profiles. An observability stack built on Promtail, Loki, and Grafana provides real-time
+visibility into gateway traffic and system health. A Docusaurus-based documentation
+portal, integrated with Scalar and Keycloak, allows developers to explore and test all
+available APIs directly from the browser.
+ 
+Although direct integration with the university's own infrastructure was not achievable
+within the project's timeline, the delivered platform is fully containerised, version
+controlled, and designed so that migration to real institutional infrastructure requires
+only configuration changes.
+ 
+\vspace{1em}
+\noindent\textbf{Keywords:} API Gateway, WSO2, Keycloak, FastAPI, OAuth2, Observability,
+University of Aveiro.
 
-For over a decade, the api.web.ua.pt platform served as a vital digital backbone for the University of Aveiro,
-centralizing essential services ranging from canteen menus to academic ticketing. However, as the digital landscape
-evolved, the original infrastructure began to show its age, struggling with outdated security protocols, poor readability,
-and a lack of modern architectural standards. These mounting technical limitations eventually led to the decommissioning
-of the legacy system, sparking the urgent need for a complete, from-the-ground-up rebuild to better serve the modern student body.
-This project outlines the comprehensive modernization of the university's API ecosystem. The reconstruction began by revitalizing
-core endpoints—including canteen services (sas), RSS-to-JSON translation tools (Rss2Json), institutional data (ArcGIS),
-real-time parking availability (parques), and academic services (sac). By employing current programming languages and libraries,
-the fundamental bugs and inefficiencies of the previous system were addressed. To safeguard these assets against external threats,
-the new APIs were integrated into a robust WSO2 management layer, unified under Keycloak as the platform's identity
-provider. The result is a secure, high-performance platform complemented by a dedicated documentation portal
-and an interactive testing framework, ensuring that the university's digital tools are as reliable and accessible as the
-services they represent.
 
 \vspace{1em}
 
@@ -1256,7 +1274,6 @@ system is healthy}. This separation of concerns makes it straightforward to tria
 issues --- a spike in 403 errors on the WSO2 dashboard points to an authentication or
 subscription problem, while an unexpected drop in traffic on the APIs dashboard may
 indicate a backend outage.
-
 % ─────────────────────────────────────────────────────────────────────────────
 %  CHAPTER 5 -- Results
 % ─────────────────────────────────────────────────────────────────────────────
@@ -1264,72 +1281,15 @@ indicate a backend outage.
 \label{chap:results}
 
 \section{Expected Results}
-At the end of this project the expected result is to have a fully operational platform
-that operates in accordance with the objectives that were proposed. The system will be
-completely secured, operating with Keycloak as the identity provider, to prevent any
-unwanted access to the private APIs implemented. The platform should also be intuitive
-and easy to use by students, professors and external developers alike that aim to
-integrate any of the available APIs into their own projects. To support this, a
-comprehensive documentation website will be created, covering each endpoint and method
-available, alongside an interactive testing mechanism that allows users to try all those
-methods directly in the browser. Due to the modernization and different implementations,
-such as the usage of Memcached caching and other technologies, responses are expected to
-be processed in under 3 seconds under normal operating conditions. Finally, all the work
-done will remain compatible with systems already integrated with the previous platform,
-as the endpoints will stay the same, avoiding service disruption and ensuring continuity
-for existing consumers.
+At the outset of the project, the following outcomes were defined as the target for a
+successful delivery: a fully operational and secured platform, with Keycloak acting as
+the identity provider to prevent unauthorised access to private APIs; a documentation
+portal covering all available endpoints, complemented by an interactive testing
+interface accessible directly from the browser; API response times consistently below
+3 seconds under normal operating conditions; and full endpoint compatibility with the
+legacy system, ensuring that existing consumers would not require any changes on their
+side.
 
-\section{Achieved Results}
-% TODO: fill in at the end of the project — compare against expected results above,
-%       include performance measurements, security validation, API coverage, etc.
-Finished the project, all expected results were achieved. Even though the original plan 
-of integrating with the university's infrastructure was not possible, the final result is a fully operational
-platform that meets all the objectives proposed at the beginning of the project.
-Keycloak is acting as a substitute for the university's identity provider,
- and all APIs are protected behind it, ensuring that only authenticated users can access them.
- The documentation portal is live and provides comprehensive information about each endpoint, 
- along with an interactive testing interface that allows users to try out the APIs directly
- from their browsers. Since the endpoints are the same, the platform is ready
- to be migrated if necessary.
-\subsection{APIs Delivered}
-The platform delivered four working APIs that cover the main use cases identified for
-the project. The \textbf{SAS} API exposes canteen menu information while preserving the
-legacy response formats used by existing consumers. The \textbf{Parques} API provides
-real-time parking occupancy data through a REST layer on top of the original SOAP
-service, making the information easier to integrate with modern clients. The
-\textbf{Rss2Json} API converts external RSS feeds into JSON or JSONP, offering a simple
-way to consume feed content programmatically. Finally, the \textbf{Access Points}
-mock API demonstrates how new institutional services can be added to the platform,
-providing a realistic example of the architecture's extensibility.
-
-\subsection{Security and Access Control}
-% TODO
-...
-
-\subsection{Performance(atualizar mais tarde)}
-The main performance target stated in the report was to keep API responses under
-3 seconds under normal operating conditions. To support that objective, the platform
-was designed to minimise unnecessary upstream calls and to serve repeated requests
-from cache whenever possible. The SAS API stores the full week's menu data in
-Memcached and filters it in memory, while also using 	exttt{ETag} and
-      exttt{Cache-Control} headers to avoid resending unchanged data. The Rss2Json API
-follows a stale-while-revalidate approach, returning cached content immediately and
-refreshing it in the background. The Parques API also reduces overhead by wrapping the
-original SOAP service behind a lightweight REST interface, so the most expensive part
-of the request path is isolated and only executed when fresh data is needed.
-
-\subsection{AI Acknoledgment}
-...
-
-\subsection{Known Limitations and Future Work}
-When we began this project, we wanted to make the system available to the 
-public. That is something that we still would like to see happen in the future,
-as it would be a great way to validate the work done and to provide
-a useful service to the academic community. Adding to that, we expect that the API
-  catalogue will grow over time, providing more and more support for academic 
-  activities and keeping information services up to date for future modernization
- if necessary.
- 
 \section{Projected Schedule}
 \begin{figure}[H]
     \centering
@@ -1338,13 +1298,88 @@ a useful service to the academic community. Adding to that, we expect that the A
     \label{fig:schedule}
 \end{figure}
 
-The planned work is organised into seven main tasks, distributed between February and
-June. Website and documentation activities span almost the entire period, providing
-continuous support to the remaining tasks. Initial weeks focus on task organisation and
-the refactoring of existing services, followed by the implementation and stabilisation
-of the core institutional APIs. In the final phase, additional APIs are integrated and
-the project report is completed, ensuring that the technical work is accompanied by
+The planned work was organised into seven main tasks, distributed between February and
+June. Website and documentation activities spanned almost the entire period, providing
+continuous support to the remaining tasks. The initial weeks focused on task organisation
+and the refactoring of existing services, followed by the implementation and stabilisation
+of the core institutional APIs. In the final phase, additional APIs were integrated and
+the project report was completed, ensuring that the technical work was accompanied by
 up-to-date documentation and validation milestones.
+This schedule was successfuly followed and used to keep track of how late or early the 
+team's work was being done.
+
+
+\section{Achieved Results}
+All objectives proposed at the beginning of the project were met. Although the original
+plan of integrating with STIC's infrastructure was not achievable within the project's
+timeline --- as described in Section~\ref{sec:scope_shift} --- the delivered platform
+is fully operational and demonstrates the intended architecture in its entirety. Keycloak
+substitutes the university's identity provider, all APIs are protected behind the gateway,
+and the platform is designed so that a migration to real institutional infrastructure
+would require only configuration changes, not code changes.
+
+\subsection{APIs Delivered}
+The platform delivers four working APIs covering the main use cases identified for the
+project. The \textbf{SAS} API exposes canteen menu information while preserving the
+legacy response formats (XML, JSON, and JSONP) used by existing consumers. The
+\textbf{Parques} API provides real-time parking occupancy data through a REST interface
+built on top of the original SOAP service, making the information significantly easier
+to integrate with modern clients. The \textbf{Rss2Json} API converts external RSS feeds
+into JSON or JSONP, offering a straightforward way to consume feed content
+programmatically. Finally, the \textbf{Access Points} mock API demonstrates how new
+institutional services can be introduced to the platform, serving as a concrete example
+of the architecture's extensibility and providing a template for future integrations.
+
+\subsection{Security and Access Control}
+All APIs published on the platform are protected by the WSO2 gateway and require a
+valid Bearer token to be accessed. Authentication is handled exclusively by Keycloak:
+no credentials are processed by the gateway or by any backend service. The role-based
+access control model --- with distinct roles for \texttt{admin}, \texttt{professor},
+and \texttt{aluno} --- ensures that each consumer profile can only reach the endpoints
+it is authorised for. Public APIs, such as the canteen menus, are exempt from token
+validation and remain accessible without authentication, consistent with the behaviour
+of the original platform. The entire security configuration --- Keycloak realm,
+WSO2 Identity Provider settings, role mappings, and JIT Provisioning --- is version
+controlled and reproducible from a clean environment.
+
+\subsection{Performance}
+The main performance target was to keep API responses under 3 seconds under normal
+operating conditions. The platform was designed to minimise unnecessary upstream calls
+and to serve repeated requests from cache wherever possible. The SAS API stores the
+full week's menu data in Memcached and filters it in memory on each request, and uses
+\texttt{ETag} and \texttt{Cache-Control} headers to avoid resending unchanged responses.
+The Rss2Json API applies a stale-while-revalidate strategy, returning cached content
+immediately and refreshing it in the background. The Parques API reduces overhead by
+wrapping the original SOAP service behind a lightweight REST interface, isolating the
+most expensive part of the request path. Under these conditions, all APIs consistently
+respond within the defined threshold.
+% TODO: add measured response time data when available.
+
+\subsection{AI Acknowledgement}
+Artificial intelligence tools were used during the development of this project in a
+strictly assistive capacity. Specifically, large language models were consulted to
+support the writing and proofreading of this report --- improving English grammar,
+vocabulary, and technical phrasing --- and to answer questions about the technologies
+adopted in the project. Tools such as Claude were particularly useful for accelerating
+the learning curve on unfamiliar topics, including Docker configuration, Keycloak setup,
+WSO2 integration, and Grafana provisioning. At no point were AI tools used to generate
+code that was directly incorporated into the platform without review and understanding
+by the team. All architectural decisions, implementation choices, and technical
+configurations were made by the project members.
+
+\subsection{Known Limitations and Future Work}
+The most significant limitation of the current state of the project is that the platform
+has not yet been deployed on real institutional infrastructure. The integration with
+STIC's systems --- which would replace the local Keycloak with \texttt{idp.ua.pt} and
+move the stack to the university's Kubernetes cluster --- remains the natural next step,
+and the platform has been built with exactly this migration in mind.
+
+Beyond deployment, the API catalogue is expected to grow over time. The Access Points
+mock API demonstrates that adding new services is a well-defined and low-friction process,
+and future development teams should be able to extend the platform without disrupting
+existing consumers. Making the platform publicly available to the UA academic community
+would be the ultimate validation of the work done, and remains the long-term goal for
+which this project lays the foundation.
 
 % ─────────────────────────────────────────────────────────────────────────────
 %  Bibliography
