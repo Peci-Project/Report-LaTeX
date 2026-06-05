@@ -372,15 +372,15 @@ the backend, and access scopes are mapped to user roles --- \texttt{admin},
 endpoints each profile can consume. The Docusaurus developer portal is also integrated
 with Keycloak, enabling users to authenticate directly from the documentation interface.
 
-\subsection{Docusaurus and Stoplight Elements}
+\subsection{Docusaurus and Scalar}
 The developer portal is built with \textbf{Docusaurus}, a React-based static site
 generator maintained by Meta. It was chosen for its native support for Markdown and
 MDX content, built-in versioning, and low maintenance overhead --- documentation
 updates require only editing text files, with no application code changes. Interactive
-API testing is provided by \textbf{Stoplight Elements}, an open-source React component
-that renders a full API explorer from an OpenAPI specification. All test requests issued
+API testing is provided by \textbf{Scalar}, a modern open-source React component
+that renders a full API explorer directly from an OpenAPI specification. All test requests issued
 through the portal are routed through the WSO2 gateway, ensuring that the developer
-experience accurately reflects production behaviour.
+experience accurately reflects production behaviour and respects all configured security policies.
 
 \subsection{Memcached}
 Memcached is a high-performance, in-memory key-value store used in this project to
@@ -774,12 +774,42 @@ from a user's first login to a successful API call:
 \end{enumerate}
 
 
-\section{APIs --- ServicesUAPT}
-The API UA platform was implemented in Python using the FastAPI framework, following a 
-modular router-based architecture. Each service is encapsulated in its own router module, 
-registered in the main application entry point, and exposed under a dedicated URL prefix. 
-This design ensures a clear separation of concerns between services and facilitates the 
-integration of new APIs in the future without modifying existing ones.
+\section{APIs --- ServicesWebUAPT}
+The ServicesWebUAPT platform is a legacy system originally developed by the University of 
+Aveiro to centralise and expose various internal services through a common web API interface. 
+At the time this project began, the platform had been left without active maintenance for 
+several years, running on an outdated PHP codebase with no documentation, no automated tests, 
+and no clear ownership. Despite its state of abandonment, the platform remained in production 
+and was still being consumed by existing clients, making it a priority target for modernisation 
+within the scope of this project.
+\paragraph{}
+The goal was to migrate the existing services to a modern Python-based implementation using 
+the FastAPI framework, following a modular router-based architecture. Each service is 
+encapsulated in its own router module, registered in the main application entry point, 
+and exposed under a dedicated URL prefix. This design ensures a clear separation of concerns 
+between services and facilitates the integration of new APIs in the future without modifying 
+existing ones.
+\paragraph{}
+Originally, the scope of this migration included a broader set of APIs beyond those that 
+were ultimately delivered. The following APIs were planned but could not be implemented 
+due to access and integration issues with STIC (the University of Aveiro's IT services 
+department), which was responsible for providing the necessary credentials, documentation, 
+and backend access:
+
+\begin{itemize}
+    \item \textbf{ArcGIS API} --- intended to provide data about the 
+          organisational units and physical buildings of the University of Aveiro;
+    \item \textbf{SAC API} --- intended to expose information about the queue ticket status 
+          of the University of Aveiro's Academic Services;
+    \item \textbf{PACO API} --- intended to expose data from PACO, the University of Aveiro's 
+          academic management system.
+\end{itemize}
+
+Despite repeated attempts to obtain the necessary access and documentation from STIC, 
+the required support was not provided within the timeframe of this project, making it 
+impossible to implement these APIs. As a result, the delivered platform focuses on the 
+services for which access and documentation were available.
+
 \paragraph{}
 The main application initialises the FastAPI instance, registers all routers, and manages 
 the lifecycle of shared resources --- such as the SOAP client used by the Parking Lots API 
@@ -994,7 +1024,7 @@ The caching behaviour follows this logic:
 \end{itemize}
 
 \subsection{Access Points --- Mock API}
-The API UA platform is not merely a system that centralizes the various services offered by 
+The ServicesWebUAPT platform is not merely a system that centralizes the various services offered by 
 the University of Aveiro. Rather, it is designed to facilitate easy integration of new APIs 
 that may be developed in the future. To demonstrate this extensibility, we created a mock API 
 to simulate the integration of new web services into the platform. 
@@ -1038,7 +1068,7 @@ conflicts with other system installations. The application architecture relies o
 \end{itemize}
 
 The overall architecture diagram is shown in Figure~(\ref{fig:mock_api_architecture}), illustrating 
-the integration of these components within the broader API UA platform.
+the integration of these components within the broader ServicesWebUAPT platform.
 
 \begin{figure}[H]
     \centering
