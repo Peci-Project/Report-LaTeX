@@ -62,6 +62,21 @@
     numberstyle=\tiny\color{gray}
 }
 
+% ─── Custom Language Definitions ─────────────────────────────────────────────
+\lstdefinelanguage{javascript}{
+  morekeywords={const, let, async, await, return, true, false, function, try, catch, if, else, new},
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]",
+  sensitive=true
+}
+
+\lstdefinelanguage{json}{
+  morestring=[b]",
+  sensitive=true
+}
+
 % ─────────────────────────────────────────────────────────────────────────────
 %  DOCUMENT
 % ─────────────────────────────────────────────────────────────────────────────
@@ -1009,18 +1024,143 @@ the integration of these components within the broader API UA platform.
 
 
 \section{Academic Playground \& Innovation --- Documentation Portal}
-% TODO: Docusaurus structure, Stoplight Elements integration,
-%       Keycloak login from the portal, Open
-API spec pointing to WSO2
+
+The user-facing layer is the \textit{Academic Playground \& Innovation} portal. It serves
+two purposes: providing comprehensive documentation on how to use each API, and allowing interactive
+testing of all available endpoints directly in the browser. The goal is to make it 
+easy for developers to learn how to integrate the APIs available into their own projects. Once 
+they are familiar with the methods, the portal serves as a reliable reference guide.
 
 \subsection{Structure and Content}
-% TODO
+The portal was developed using \textbf{Docusaurus}, a static site generator built on
+React and maintained by Meta. This choice is justified by its native support for Markdown
+and MDX, built-in documentation versioning, and ease of maintenance --- updating content
+requires only editing text files, with no need to touch application code. 
+
+This architecture facilitates scaling the number of APIs. Adding a new API to the portal requires no manual frontend development. Administrators only need to declare a new Scalar plugin instance in the configuration file, pointing it to the respective OpenAPI YAML definition:
+
+\begin{lstlisting}[language=javascript, caption={Declarative registration of the Rss2json API using the Scalar plugin}]
+[
+  '@scalar/docusaurus',
+  {
+    id: 'rss2json',
+    label: 'Rss2json',
+    route: '/api/rss2json',
+    showNavLink: false,
+    configuration: {
+      url: `${baseUrl}openAPI-rss2json.yaml`,
+      metaData: { title: 'Rss2json' },
+      proxyUrl: 'https://proxy-api-orcin.vercel.app/api/proxy',
+      ...commonScalarConfig,
+    },
+  }
+]
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{figures/docusaurus_endpoints.png}
+    \caption{Scalar API explorer interface automatically rendering the endpoint catalog from the OpenAPI specification.}
+    \label{fig:scalar_catalog}
+\end{figure}
 
 \subsection{Interactive Testing}
-% TODO
+To provide interactive testing capabilities directly in the browser, was integrated Scalar into the Docusaurus site.
+Rather than communicating with the FastAPI backend directly, all test requests issued from the portal are routed through the \textbf{WSO2 API Gateway}, mimicking the exact path taken by any external consumer. This is accomplished by setting the WSO2 public endpoint as the target server in the OpenAPI specification:
+
+\begin{lstlisting}[language=json, caption={OpenAPI server configuration targeting WSO2}]
+{
+  "servers": [
+    { "url": "https://api.ua.pt/v1" }
+  ]
+}
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/docusaurus_test_request.png}
+    \caption{Interactive API explorer powered by Scalar, showing a successful request routed through WSO2.}
+    \label{fig:scalar_interface}
+\end{figure}
+
+A fundamental challenge when integrating interactive API testing within a browser environment is the Cross-Origin Resource Sharing (CORS) policy. Since the portal interacts with various external APIs that may lack proper CORS configurations, a dedicated middleware proxy was developed using Node.js and Express. 
+
+When the Scalar interface attempts to call a restricted API, the request is routed to the proxy. The proxy server performs the actual HTTP request to the target destination, attaching necessary wildcard CORS headers to the response before forwarding the payload back to the Docusaurus frontend.
+
+\begin{lstlisting}[language=javascript, caption={Node.js Express Proxy for CORS circumvention and header injection}]
+async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  let targetUrl = req.query.url || req.query.scalar_url;
+  if (!targetUrl) return res.status(400).json({ error: "Missing target URL" });
+
+  try {
+    const fullUrl = new URL(decodeURIComponent(targetUrl));
+    const response = await fetch(fullUrl.toString(), {
+      method: req.method,
+      headers: {
+        'Accept': '*/*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Connection': 'keep-alive'
+      }
+    });
+
+    const data = await response.text();
+    res.setHeader('Content-Type', 'application/json');
+    res.status(response.status).send(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Gateway error', details: error.message });
+  }
+}
+\end{lstlisting}
 
 \subsection{Keycloak Integration}
-% TODO
+To handle private APIs and administrative tools, the portal integrates seamlessly with \textbf{Keycloak} for Single Sign-On (SSO). Using the \texttt{@react-keycloak/web} library, the application maintains a global authentication state across the static site. To ensure compatibility with Docusaurus' Static Site Generation (SSG) process, protected React components are wrapped in a \texttt{<BrowserOnly>} boundary, preventing server-side rendering errors.
+
+A dynamic Role-Based Access Control (RBAC) system was implemented directly in the UI. Components such as the Navigation Bar automatically read the JSON Web Token (JWT) provided by Keycloak and filter their visibility based on the user's assigned roles. 
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Keycloak Role} & \textbf{Visible APIs} \\
+        \midrule
+        Public (Unauthenticated) & Canteen Menus, RSS to JSON \\
+        User (Standard Access)   & Public APIs, Parking Lots \\
+        Administrator            & All APIs, Access Points API \\
+        \bottomrule
+    \end{tabular}
+    \caption{Mapping of UI component visibility based on Keycloak RBAC roles.}
+    \label{tab:rbac_mapping}
+\end{table}
+
+The custom \texttt{ProtectedDropdown} component reads these declarative properties and filters the endpoints accordingly:
+
+\begin{lstlisting}[language=javascript, caption={Role-based access control configuration in Docusaurus navbar}]
+{
+  type: 'custom-ProtectedDropdown',
+  label: 'Servicos',
+  position: 'left',
+  items: [
+    { label: 'Parques', to: '/api/parques' }, // Public
+    { 
+      label: 'Rss2json', 
+      to: '/api/rss2json',
+      customProps: { allowedRoles: ['admin_role', 'publisher_role'] } 
+    }
+  ]
+}
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{figures/docusaurus_compare_roles.png}
+    \caption{Dynamic UI rendering: Public view (left) vs. Administrator view with expanded access (right).}
+    \label{fig:rbac_comparison}
+\end{figure}
 
 \section{Monitoring --- Grafana, Loki and Promtail}
 The monitoring stack provides full observability over the platform's runtime behaviour.
