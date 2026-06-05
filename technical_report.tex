@@ -354,15 +354,15 @@ the backend, and access scopes are mapped to user roles --- \texttt{admin},
 endpoints each profile can consume. The Docusaurus developer portal is also integrated
 with Keycloak, enabling users to authenticate directly from the documentation interface.
 
-\subsection{Docusaurus and Stoplight Elements}
+\subsection{Docusaurus and Scalar}
 The developer portal is built with \textbf{Docusaurus}, a React-based static site
 generator maintained by Meta. It was chosen for its native support for Markdown and
 MDX content, built-in versioning, and low maintenance overhead --- documentation
 updates require only editing text files, with no application code changes. Interactive
-API testing is provided by \textbf{Stoplight Elements}, an open-source React component
-that renders a full API explorer from an OpenAPI specification. All test requests issued
+API testing is provided by \textbf{Scalar}, a modern open-source React component
+that renders a full API explorer directly from an OpenAPI specification. All test requests issued
 through the portal are routed through the WSO2 gateway, ensuring that the developer
-experience accurately reflects production behaviour.
+experience accurately reflects production behaviour and respects all configured security policies.
 
 \subsection{Memcached}
 Memcached is a high-performance, in-memory key-value store used in this project to
