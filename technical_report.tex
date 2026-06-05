@@ -97,7 +97,7 @@
     {\large Technical Report}\\[0.5cm]
     {\large PECI}\\[2cm]
 
-    {\large \textbf{Equipa}}\\[0.2cm]
+    {\large \textbf{Team}}\\[0.2cm]
     {\large André Reis: 119814}\\[0.2cm]
     {\large Vasco Oliveira: 119113}\\[0.2cm]
     {\large Pedro Ferreira: 119240}\\[0.2cm]
@@ -105,7 +105,7 @@
     {\large Dinis Malhado: 120420}\\[0.2cm]
     {\large Simão Pereira: 120459}\\[2cm]
 
-    {\large Orientador: Diogo Gomes}\\[2cm]
+    {\large Supervisor: Diogo Gomes}\\[2cm]
 
     {\large \today}
 
@@ -235,7 +235,7 @@ platform. The main objectives are:
     \item Introduce a WSO2 API Gateway layer to centralise authentication, authorisation,
           monitoring, and rate limiting across all services;
     \item Develop a documentation and interactive testing portal, the
-          	extit{Academic Playground \& Innovation}, that makes it straightforward
+          	\textit{Academic Playground \& Innovation}, that makes it straightforward
           for students and developers to discover, understand, and integrate the available APIs;
     \item Design the architecture to be modular and extensible, so that new services can
           be added with minimal effort and no disruption to existing ones;
@@ -316,7 +316,7 @@ developer portals. However, as hosted proprietary services, they introduce vendo
 lock-in and are unsuitable for an institutional deployment that must remain under
 the university's control and on-premises.
 
-	extbf{RapidAPI} represents a different model, functioning primarily as a marketplace
+	\textbf{RapidAPI} represents a different model, functioning primarily as a marketplace
 and developer portal for discovering and testing third-party APIs. Its interactive
 testing interface, which allows developers to issue live requests directly from
 the documentation page, was a direct source of inspiration for the
@@ -369,7 +369,7 @@ was chosen for its mature support for OAuth2 and OpenID Connect, its flexible
 role-based access control, and its ability to federate with external identity providers.
 The WSO2 gateway validates tokens issued by Keycloak before forwarding requests to
 the backend, and access scopes are mapped to user roles, \texttt{admin},
-	exttt{professor}, and \texttt{aluno}, allowing fine-grained control over which
+	\texttt{professor}, and \texttt{aluno}, allowing fine-grained control over which
 endpoints each profile can consume. The Docusaurus developer portal is also integrated
 with Keycloak, enabling users to authenticate directly from the documentation interface.
 
@@ -760,7 +760,7 @@ from a user's first login to a successful API call:
 \begin{enumerate}
     \item The user navigates to the WSO2 Developer Portal and clicks \textit{Login}.
     \item WSO2 redirects the browser to Keycloak's authorisation endpoint.
-    \item The user authenticates against Keycloak (username and password).
+    \item The user authenticates with Keycloak (username and password).
     \item Keycloak issues an authorisation code and redirects the browser back to WSO2.
     \item WSO2 exchanges the authorisation code for a JWT access token at Keycloak's
           token endpoint, using its client secret.
@@ -825,7 +825,7 @@ on startup and shutdown respectively.
 For services that consume external data sources, a caching layer was introduced to reduce
 upstream load and improve response times. The Canteen Menus API uses \textbf{Memcached}
 as its caching backend, storing the full week's menu data in memory and refreshing it
-daily at midnight. The RSS to JSON API uses a file-based cache, storing each converted
+daily at midday. The RSS to JSON API uses a file-based cache, storing each converted
 feed as a local file identified by a SHA-1 hash of its URL, with background refresh tasks
 keeping the cache up to date without blocking client responses.
 
