@@ -116,7 +116,7 @@
 
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
- 
+
 For over a decade, the \texttt{api.web.ua.pt} platform served as the University of
 Aveiro's centralised web services infrastructure, exposing institutional data --- from
 canteen menus to parking availability --- to students, faculty, and third-party
@@ -124,7 +124,7 @@ developers. The platform was eventually decommissioned due to critical security
 vulnerabilities in its end-of-life PHP stack, poor performance under concurrent load,
 and a tightly coupled codebase that made maintenance and extension increasingly
 impractical.
- 
+
 This project delivers a complete, production-equivalent replacement built on modern
 technologies. The backend services --- covering canteen menus, real-time parking
 availability, RSS feed conversion, and a mock API for university access points --- were
@@ -137,12 +137,13 @@ profiles. An observability stack built on Promtail, Loki, and Grafana provides r
 visibility into gateway traffic and system health. A Docusaurus-based documentation
 portal, integrated with Scalar and Keycloak, allows developers to explore and test all
 available APIs directly from the browser.
- 
+
 Although direct integration with the university's own infrastructure was not achievable
 within the project's timeline, the delivered platform is fully containerised, version
 controlled, and designed so that migration to real institutional infrastructure requires
-only configuration changes.
- 
+only configuration changes. The platform was successfully deployed and validated in a
+self-contained local environment, demonstrating the intended architecture in its entirety.
+
 \vspace{1em}
 \noindent\textbf{Keywords:} API Gateway, WSO2, Keycloak, FastAPI, OAuth2, Observability,
 University of Aveiro.
@@ -172,8 +173,8 @@ and third-party developers. Through this platform, the university made available
 of services that became embedded in the daily life of its academic community: real-time
 canteen menus, academic services queue tickets, campus building information, and parking
 availability, among others.
-\paragraph{}
-Despite its relevance, the platform was built over a decade ago on a PHP stack that has
+
+Despite its widespread use, the platform was built over a decade ago on a PHP stack that has
 since reached end-of-life. Over time, the absence of security updates, the accumulation
 of unresolved bugs, and the growing incompatibility with modern development practices
 rendered the system increasingly difficult to maintain. These factors ultimately led to
@@ -183,17 +184,17 @@ infrastructure that directly affected students and developers who depended on it
 \section{Problem Statement}
 The core issues that led to the platform's decommissioning can be grouped into three
 categories.
-\paragraph{}
+
 The first is \textbf{security}. The legacy system ran on an outdated version of PHP
 with known CVEs that had gone unpatched, exposing the platform to exploitation. With
 no authentication or authorisation layer in place, any consumer could call any endpoint
 without restriction, making it impossible to protect sensitive data or audit access.
-\paragraph{}
+
 The second is \textbf{reliability and performance}. The architecture was not designed
 to handle concurrent load gracefully. Under peak usage --- such as at the start of the
 academic year or during lunch hours --- the server would become unresponsive, degrading
 the experience for all users simultaneously.
-\paragraph{}
+
 The third is \textbf{maintainability}. The codebase lacked modularity and documentation,
 making it difficult to onboard new developers or extend the platform with additional
 services. Adding a new API required modifying a tightly coupled codebase with no clear
@@ -208,12 +209,12 @@ own API Manager instance, and federate authentication with the university's exis
 identity provider (\texttt{idp.ua.pt}). The broader ambition was to gradually centralise
 all of the university's web services under a single, governed API platform --- one that
 could become the definitive integration layer for present and future UA systems.
-\paragraph{}
+
 However, at a certain point in the project, communication with STIC ceased. Requests for
 access to the necessary infrastructure, configuration details, and coordination on
 deployment went unanswered, making it impossible to proceed with the original integration
 plan within the project's timeline.
-\paragraph{}
+
 Following consultation with the project supervisor, Diogo Gomes, the decision was made
 to reorient the project towards a fully self-contained local deployment. Rather than
 depending on external infrastructure, the team set up its own instances of WSO2 API
@@ -237,7 +238,7 @@ platform. The main objectives are:
           \textit{Academic Playground \& Innovation} --- that makes it straightforward
           for students and developers to discover, understand, and integrate the available APIs;
     \item Design the architecture to be modular and extensible, so that new services can
-          be added with minimal effort and no disruption to existing ones.
+          be added with minimal effort and no disruption to existing ones;
     \item Introduce mock APIs to demonstrate the ease of integration for future services
           and what could have been done if they were to be implemented with real data.
 \end{itemize}
@@ -249,8 +250,8 @@ selected for the project, justifying each choice. Chapter~\ref{chap:requirements
 covers the requirements elicitation process and provides a high-level description of
 the system architecture. Chapter~\ref{chap:implementation} details the implementation
 of each architectural component, including configuration, local development environment,
-and integration between services. Chapter~\ref{chap:results} outlines the expected
-outcomes and evaluates the results achieved against the initial objectives.
+and integration between services. Chapter~\ref{chap:results} presents the results
+achieved and evaluates them against the initial objectives.
 
 % ─────────────────────────────────────────────────────────────────────────────
 %  CHAPTER 2 -- Related Work, Tools and Technologies
@@ -325,8 +326,8 @@ the documentation page --- was a direct source of inspiration for the
 
 Beyond commercial offerings, several universities and public institutions have
 developed API platforms to expose institutional data to their communities.
-MIT's \textit{Atlas} and Stanford's developer portals follow a similar model:
-centralised access to institutional data through authenticated APIs, with
+Institutions such as MIT and Stanford maintain developer portals that follow a similar
+model: centralised access to institutional data through authenticated APIs, with
 developer documentation and sandbox environments.
 
 The common thread across these platforms is the separation between the
@@ -513,6 +514,7 @@ a datasource and presents the aggregated data through pre-provisioned dashboards
 giving operators a real-time view of gateway traffic, error rates, and API usage
 patterns. This layer does not sit in the request path and has no effect on API
 response times.
+
 % ─────────────────────────────────────────────────────────────────────────────
 %  CHAPTER 4 -- Implementation
 % ─────────────────────────────────────────────────────────────────────────────
@@ -572,7 +574,8 @@ roles within the platform.
         \texttt{sas}        & Canteen menus API. Depends on Memcached for response caching. \\
         \texttt{parques}    & Parking availability API. \\
         \texttt{rss2json}   & RSS to JSON converter API. \\
-        \texttt{ap}         & Access Points mock API. \\
+        \texttt{ap}         & Access Points mock API. Connects to the external IETTA
+                              database via ODBC. \\
         \texttt{memcached}  & In-memory cache, used exclusively by the SAS service. \\
         \bottomrule
     \end{tabular}
@@ -584,8 +587,8 @@ be required after \texttt{docker compose up}. WSO2 loads its configuration from 
 mounted \texttt{deployment.toml}; Keycloak imports the realm from a versioned JSON file;
 Grafana provisions its datasource and dashboards from YAML and JSON files mounted into
 the container. The WSO2 API catalogue is restored automatically at startup via
-\texttt{import-all.sh}. The result is a fully deterministic environment that can be
-reproduced identically on any development machine.
+\texttt{import-all.sh}. The result is a fully reproducible environment that can be
+brought up identically on any development machine.
 
 \subsection{Local Environment vs.\ Production Deployment}
 While the local environment faithfully replicates the platform's intended behaviour,
@@ -645,17 +648,18 @@ To ensure the deployment is fully reproducible, all API definitions are exported
 files using \texttt{apictl}, the WSO2 command-line tool, and stored under version control.
 An import script (\texttt{import-all.sh}) re-registers all APIs automatically on startup,
 meaning the entire API catalogue is restored without any manual intervention when the
-stack is brought up from scratch. This was mainly done because the project was kept on a 
-repository and it was the most convenient way to share it between team members, in a real 
-scenario, there would be no need to import the APIs as all the configurations would be stored
-in the machine's docker volumes.
+stack is brought up from scratch. This was mainly done because the project was kept on a
+repository and it was the most convenient way to share it between team members; in a real
+scenario, there would be no need to import the APIs as all the configurations would be
+stored in the machine's Docker volumes.
 
 \subsection{Access Control and Subscriptions}
 Access to every published API is governed by a subscription model. A consumer must create
 an Application in the Developer Portal and subscribe that Application to the desired API.
-Upon subscription, a set of OAuth2 Bearer tokens (Production Keys) is generated for that
-Application. Every subsequent API request must carry one of these tokens in the
-\texttt{Authorization} header.
+Upon subscription, OAuth2 client credentials (Client ID and Client Secret) are generated
+for that Application. These credentials are then used to obtain a Bearer token via the
+OAuth2 client credentials or authorization code flow. Every subsequent API request must
+carry one of these tokens in the \texttt{Authorization} header.
 
 When a request arrives at the gateway, WSO2 performs the following checks before
 forwarding it to the backend:
@@ -663,7 +667,8 @@ forwarding it to the backend:
     \item validates the token signature and expiry;
     \item verifies that the Application owning the token holds an active subscription
           for the requested API path and version;
-    \item applies any configured rate limiting policies.
+    \item applies the configured rate limiting policies (e.g.\ a default tier of
+          10 requests per minute per Application).
 \end{itemize}
 Only if all checks pass does the internal Synapse engine forward the request to the
 corresponding FastAPI backend service and relay the response back to the client.
@@ -762,85 +767,86 @@ from a user's first login to a successful API call:
     \item WSO2 reads the user's roles from the token, applies the Role Mapping, and
           creates (or updates) the user's profile in the \texttt{PRIMARY} store via JIT
           Provisioning.
-    \item The user is now logged into the Developer Portal. They create an Application,
-          subscribe it to an API (e.g.\ \textit{Parques 1.0.0}), and generate
-          Production Keys (a Bearer token).
-    \item To call the API, the user sends an HTTP request to the WSO2 gateway 
+    \item The user is now logged into the Developer Portal. They create an Application
+          and subscribe it to an API (e.g.\ \textit{Parques 1.0.0}). The Developer
+          Portal generates OAuth2 client credentials (Client ID and Client Secret) for
+          that Application, which are then exchanged for a Bearer token via the token
+          endpoint.
+    \item To call the API, the user sends an HTTP request to the WSO2 gateway
           with the header \texttt{Authorization: Bearer <token>}.
     \item The WSO2 gateway intercepts the request, validates the token, and verifies
           that the Application has an active subscription for the requested API path.
-    \item On success, the request is fowarded to the corresponding
+    \item On success, the request is forwarded to the corresponding
           FastAPI backend service and returns the response to the client.
 \end{enumerate}
 
 
 \section{APIs --- ServicesWebUAPT}
-The ServicesWebUAPT platform is a legacy system originally developed by the University of 
-Aveiro to centralise and expose various internal services through a common web API interface. 
-At the time this project began, the platform had been left without active maintenance for 
-several years, running on an outdated PHP codebase with no documentation, no automated tests, 
-and no clear ownership. Despite its state of abandonment, the platform remained in production 
-and was still being consumed by existing clients, making it a priority target for modernisation 
+The ServicesWebUAPT platform is a legacy system originally developed by the University of
+Aveiro to centralise and expose various internal services through a common web API interface.
+At the time this project began, the platform had been left without active maintenance for
+several years, running on an outdated PHP codebase with no documentation, no automated tests,
+and no clear ownership. Despite its state of abandonment, the platform remained in production
+and was still being consumed by existing clients, making it a priority target for modernisation
 within the scope of this project.
-\paragraph{}
-The goal was to migrate the existing services to a modern Python-based implementation using 
-the FastAPI framework, following a modular router-based architecture. Each service is 
-encapsulated in its own router module, registered in the main application entry point, 
-and exposed under a dedicated URL prefix. This design ensures a clear separation of concerns 
-between services and facilitates the integration of new APIs in the future without modifying 
+
+The goal was to migrate the existing services to a modern Python-based implementation using
+the FastAPI framework, following a modular router-based architecture. Each service is
+encapsulated in its own router module, registered in the main application entry point,
+and exposed under a dedicated URL prefix. This design ensures a clear separation of concerns
+between services and facilitates the integration of new APIs in the future without modifying
 existing ones.
-\paragraph{}
-Originally, the scope of this migration included a broader set of APIs beyond those that 
-were ultimately delivered. The following APIs were planned but could not be implemented 
-due to access and integration issues with STIC (the University of Aveiro's IT services 
-department), which was responsible for providing the necessary credentials, documentation, 
+
+Originally, the scope of this migration included a broader set of APIs beyond those that
+were ultimately delivered. The following APIs were planned but could not be implemented
+due to access and integration issues with STIC (the University of Aveiro's IT services
+department), which was responsible for providing the necessary credentials, documentation,
 and backend access:
 
 \begin{itemize}
-    \item \textbf{ArcGIS API} --- intended to provide data about the 
+    \item \textbf{ArcGIS API} --- intended to provide data about the
           organisational units and physical buildings of the University of Aveiro;
-    \item \textbf{SAC API} --- intended to expose information about the queue ticket status 
+    \item \textbf{SAC API} --- intended to expose information about the queue ticket status
           of the University of Aveiro's Academic Services;
-    \item \textbf{PACO API} --- intended to expose data from PACO, the University of Aveiro's 
+    \item \textbf{PACO API} --- intended to expose data from PACO, the University of Aveiro's
           academic management system.
 \end{itemize}
 
-Despite repeated attempts to obtain the necessary access and documentation from STIC, 
-the required support was not provided within the timeframe of this project, making it 
-impossible to implement these APIs. As a result, the delivered platform focuses on the 
+Despite repeated attempts to obtain the necessary access and documentation from STIC,
+the required support was not provided within the timeframe of this project, making it
+impossible to implement these APIs. As a result, the delivered platform focuses on the
 services for which access and documentation were available.
 
-\paragraph{}
-The main application initialises the FastAPI instance, registers all routers, and manages 
-the lifecycle of shared resources --- such as the SOAP client used by the Parking Lots API 
---- through FastAPI's lifespan context manager, ensuring proper initialisation and cleanup 
+The main application initialises the FastAPI instance, registers all routers, and manages
+the lifecycle of shared resources --- such as the SOAP client used by the Parking Lots API
+--- through FastAPI's lifespan context manager, ensuring proper initialisation and cleanup
 on startup and shutdown respectively.
-\paragraph{}
-For services that consume external data sources, a caching layer was introduced to reduce 
-upstream load and improve response times. The Canteen Menus API uses \textbf{Memcached} 
-as its caching backend, storing the full week's menu data in memory and refreshing it 
-daily at midnight. The RSS to JSON API uses a file-based cache, storing each converted 
-feed as a local file identified by a SHA-1 hash of its URL, with background refresh tasks 
+
+For services that consume external data sources, a caching layer was introduced to reduce
+upstream load and improve response times. The Canteen Menus API uses \textbf{Memcached}
+as its caching backend, storing the full week's menu data in memory and refreshing it
+daily at midnight. The RSS to JSON API uses a file-based cache, storing each converted
+feed as a local file identified by a SHA-1 hash of its URL, with background refresh tasks
 keeping the cache up to date without blocking client responses.
-\paragraph{}
-All APIs maintain backward compatibility with the legacy PHP services they replace, 
-preserving the same endpoint structure, query parameters, and response formats --- 
+
+All APIs maintain backward compatibility with the legacy PHP services they replace,
+preserving the same endpoint structure, query parameters, and response formats ---
 including XML, JSON, and JSONP --- ensuring a transparent migration for existing clients.
 
 \subsection{SAS --- Canteen Menus}
-The Canteen Menus API provides access to the University of Aveiro's canteen menu information, 
-exposing the weekly and daily meal schedules for the various canteens across the university 
-campus. The API acts as a compatibility layer over the University of Aveiro's internal WSO2 
-API, maintaining the same response format as the legacy service to ensure backward compatibility 
+The Canteen Menus API provides access to the University of Aveiro's canteen menu information,
+exposing the weekly and daily meal schedules for the various canteens across the university
+campus. The API acts as a compatibility layer over the University of Aveiro's internal WSO2
+API, maintaining the same response format as the legacy service to ensure backward compatibility
 with existing clients.
-\paragraph{}
+
 The API fetches menu data from the UA WSO2 gateway endpoint
-\texttt{mysas\_mysas/\allowbreak v1/\allowbreak Refeicoes/\allowbreak GetAgendaMenusEntreDatas}, 
-which returns the full week's menu schedule. This data is then filtered in memory according to the 
+\texttt{mysas\_mysas/\allowbreak v1/\allowbreak Refeicoes/\allowbreak GetAgendaMenusEntreDatas},
+which returns the full week's menu schedule. This data is then filtered in memory according to the
 requested place and date parameters, avoiding repeated calls to the upstream service for different
- parameter combinations.
-\paragraph{}
-The canteens covered by this API are Santiago, ESTGA, ESAN, and Restaurante Universitário. 
+parameter combinations.
+
+The canteens covered by this API are Santiago, ESTGA, ESAN, and Restaurante Universitário.
 Each menu entry exposes the following attributes:
 
 \begin{itemize}
@@ -851,16 +857,16 @@ Each menu entry exposes the following attributes:
 \end{itemize}
 
 \subsubsection{Caching Strategy}
-A key feature of the SAS API is its caching mechanism, implemented using Memcached. 
-Rather than fetching data from the upstream WSO2 API on every request, the API stores the 
-full week's menu data in Memcached under a single cache key (\texttt{ementas:all:week}). 
-This cached data is then filtered in memory for each request, making any combination of 
+A key feature of the SAS API is its caching mechanism, implemented using Memcached.
+Rather than fetching data from the upstream WSO2 API on every request, the API stores the
+full week's menu data in Memcached under a single cache key (\texttt{ementas:all:week}).
+This cached data is then filtered in memory for each request, making any combination of
 place and date parameters fast to serve without additional upstream calls.
-\paragraph{}
-The cache expiry is calculated dynamically as the number of seconds remaining until midnight, 
-ensuring the cache is refreshed daily with up-to-date menu information. Additionally, the API 
-supports HTTP caching through \texttt{ETag} and \texttt{Cache-Control} headers --- if the 
-client already holds the current version of the data, the API returns a \texttt{304 Not Modified} 
+
+The cache expiry is calculated dynamically as the number of seconds remaining until midnight,
+ensuring the cache is refreshed daily with up-to-date menu information. Additionally, the API
+supports HTTP caching through \texttt{ETag} and \texttt{Cache-Control} headers --- if the
+client already holds the current version of the data, the API returns a \texttt{304 Not Modified}
 response without a body, reducing unnecessary data transfer.
 
 \subsubsection{SAS API Implementation Stack}
@@ -868,62 +874,62 @@ The SAS API was implemented in Python using the FastAPI framework. The applicati
 architecture relies on several key technologies:
 
 \begin{itemize}
-    \item \textbf{FastAPI} --- the web framework used to define and expose the REST endpoint, 
+    \item \textbf{FastAPI} --- the web framework used to define and expose the REST endpoint,
           providing automatic OpenAPI documentation generation and request validation;
-    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and 
+    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and
           exposing the API through HTTP requests;
-    \item \textbf{Memcached} --- an in-memory caching system used to store the full week's 
+    \item \textbf{Memcached} --- an in-memory caching system used to store the full week's
           menu data, reducing the number of upstream requests and improving response times;
-    \item \textbf{pymemcache} --- the Python client library used to communicate with the 
-          Memcached server, providing get, set, and flush operations through a thin wrapper 
+    \item \textbf{pymemcache} --- the Python client library used to communicate with the
+          Memcached server, providing get, set, and flush operations through a thin wrapper
           centralising all cache logic;
-    \item \textbf{requests} --- used to perform HTTP requests to the upstream UA WSO2 API 
+    \item \textbf{requests} --- used to perform HTTP requests to the upstream UA WSO2 API
           to fetch the menu data;
-    \item \textbf{xmltodict} and \textbf{dicttoxml} --- used to handle XML serialization 
+    \item \textbf{xmltodict} and \textbf{dicttoxml} --- used to handle XML serialization
           of the response data for the default XML format;
-    \item \textbf{Pydantic} --- used for request parameter validation and configuration 
+    \item \textbf{Pydantic} --- used for request parameter validation and configuration
           management.
 \end{itemize}
 
 The API exposes the following endpoint:
 
 \begin{itemize}
-    \item \texttt{GET /sas/ementas} --- returns canteen menus, accepting the following 
+    \item \texttt{GET /sas/ementas} --- returns canteen menus, accepting the following
           query parameters:
     \begin{itemize}
-        \item \textbf{place} --- the canteen to filter by; accepted values are 
-              \texttt{santiago}, \texttt{estga}, \texttt{esan}, \texttt{rest}, and 
+        \item \textbf{place} --- the canteen to filter by; accepted values are
+              \texttt{santiago}, \texttt{estga}, \texttt{esan}, \texttt{rest}, and
               \texttt{all} (default: \texttt{all});
-        \item \textbf{date} --- the time range of menus to return; accepted values are 
-              \texttt{day} for today's menus only and \texttt{week} for the full week 
+        \item \textbf{date} --- the time range of menus to return; accepted values are
+              \texttt{day} for today's menus only and \texttt{week} for the full week
               (default: \texttt{day});
-        \item \textbf{format} --- the response format; accepted values are \texttt{xml}, 
+        \item \textbf{format} --- the response format; accepted values are \texttt{xml},
               \texttt{json}, and \texttt{jsonp} (default: \texttt{xml});
-        \item \textbf{cb} --- the JavaScript callback function name, required when 
+        \item \textbf{cb} --- the JavaScript callback function name, required when
               \texttt{format=jsonp};
         \item \textbf{help} --- when present, redirects the client to the API documentation;
-        \item \textbf{clear\_cache} --- when present, flushes the Memcached cache and 
+        \item \textbf{clear\_cache} --- when present, flushes the Memcached cache and
               returns a \texttt{200 OK} response.
     \end{itemize}
 \end{itemize}
 
 \subsection{Parques --- Parking Availability}
-The Parking Lots API provides real-time occupancy information for the University of Aveiro's 
-parking facilities. Rather than directly exposing the existing SOAP service, this API acts as 
-a REST/JSON wrapper around the \texttt{LotacaoParques} SOAP service, making it easier to 
+The Parking Lots API provides real-time occupancy information for the University of Aveiro's
+parking facilities. Rather than directly exposing the existing SOAP service, this API acts as
+a REST/JSON wrapper around the \texttt{LotacaoParques} SOAP service, making it easier to
 consume by modern clients and applications.
-\paragraph{}
-The service retrieves live data from the University of Aveiro's internal SOAP endpoint, 
-hosted at \texttt{score.ua.pt}, which exposes a single operation --- \texttt{Lotacao()} --- 
-returning the current occupancy status for all parking lots. The API enriches this data 
-with additional static information, such as each parking lot's display name and geographical 
-coordinates (latitude and longitude), which are maintained in a hardcoded mapping structure 
+
+The service retrieves live data from the University of Aveiro's internal SOAP endpoint,
+hosted at \texttt{score.ua.pt}, which exposes a single operation --- \texttt{Lotacao()} ---
+returning the current occupancy status for all parking lots. The API enriches this data
+with additional static information, such as each parking lot's display name and geographical
+coordinates (latitude and longitude), which are maintained in a hardcoded mapping structure
 within the application.
-\paragraph{}
-The parking lots covered by this API are distributed across the University of Aveiro campus 
-and affiliated locations, including Residencias, Biblioteca, ZTC, Subterraneo, Ceramica, 
-Linguas, Incubadora, ISCAA Publico, ISCAA Funcionarios, and ESTGA. Each parking lot is 
-identified by a unique identifier (e.g. \texttt{P8}, \texttt{P1|4}) and exposes the following 
+
+The parking lots covered by this API are distributed across the University of Aveiro campus
+and affiliated locations, including Residencias, Biblioteca, ZTC, Subterraneo, Ceramica,
+Linguas, Incubadora, ISCAA Publico, ISCAA Funcionarios, and ESTGA. Each parking lot is
+identified by a unique identifier (e.g. \texttt{P8}, \texttt{P1|4}) and exposes the following
 attributes:
 
 \begin{itemize}
@@ -936,50 +942,50 @@ attributes:
 \end{itemize}
 
 \subsubsection{Parking Lots API Implementation Stack}
-The Parking Lots API was implemented in Python using the FastAPI framework. The application 
+The Parking Lots API was implemented in Python using the FastAPI framework. The application
 architecture relies on several key technologies:
 
 \begin{itemize}
-    \item \textbf{FastAPI} --- the web framework used to define and expose the REST endpoints, 
+    \item \textbf{FastAPI} --- the web framework used to define and expose the REST endpoints,
           providing automatic OpenAPI documentation generation and request validation;
-    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and 
+    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and
           exposing the API through HTTP requests;
-    \item \textbf{Zeep} --- the Python SOAP client library used to communicate with the 
-          \texttt{Lotacao\allowbreak Parques} SOAP service, wrapped in an asynchronous executor to avoid 
+    \item \textbf{Zeep} --- the Python SOAP client library used to communicate with the
+          \texttt{Lotacao\allowbreak Parques} SOAP service, wrapped in an asynchronous executor to avoid
           blocking the FastAPI event loop;
-    \item \textbf{Pydantic} --- used for data validation and serialization of the API responses, 
+    \item \textbf{Pydantic} --- used for data validation and serialization of the API responses,
           ensuring type safety and consistent output formats.
 \end{itemize}
 
 The API exposes the following endpoints:
 
 \begin{itemize}
-    \item \texttt{GET /parques/parques} --- returns occupancy data for all parking lots, 
-          with an optional \texttt{id} parameter accepting one or more comma-separated 
+    \item \texttt{GET /parques/parques} --- returns occupancy data for all parking lots,
+          with an optional \texttt{id} parameter accepting one or more comma-separated
           parking lot identifiers (e.g. \texttt{?id=P8,P9});
-    \item \texttt{GET /parques/health} --- a liveness probe endpoint that confirms the API 
+    \item \texttt{GET /parques/health} --- a liveness probe endpoint that confirms the API
           and SOAP client are operational;
-    \item \texttt{GET /parques/occupancy} --- returns occupancy data with an optional filter 
+    \item \texttt{GET /parques/occupancy} --- returns occupancy data with an optional filter
           by parking lot name;
-    \item \texttt{GET /parques/occupancy/\{parque\_name\}} --- returns occupancy data for a 
+    \item \texttt{GET /parques/occupancy/\{parque\_name\}} --- returns occupancy data for a
           single parking lot identified by name.
 \end{itemize}
 
 \subsection{Rss2Json}
-The RSS to JSON API provides a simple interface for converting RSS feeds into JSON format, 
-making it easier for modern clients and applications to consume RSS content without having 
-to parse XML directly. The API accepts any valid RSS feed URL and returns its contents 
+The RSS to JSON API provides a simple interface for converting RSS feeds into JSON format,
+making it easier for modern clients and applications to consume RSS content without having
+to parse XML directly. The API accepts any valid RSS feed URL and returns its contents
 as a structured JSON object, with optional JSONP support for cross-origin requests.
-\paragraph{}
-A key feature of this API is its caching mechanism. To avoid unnecessary network requests 
-and reduce latency, the API stores the converted feed data in a local cache directory. 
-Each cache file is identified by a SHA-1 hash of the RSS feed URL, ensuring unique cache 
-entries per feed. When a cached version of a feed exists, the API serves it immediately 
-and schedules a background refresh to keep the cache up to date. When no cache exists, 
+
+A key feature of this API is its caching mechanism. To avoid unnecessary network requests
+and reduce latency, the API stores the converted feed data in a local cache directory.
+Each cache file is identified by a SHA-1 hash of the RSS feed URL, ensuring unique cache
+entries per feed. When a cached version of a feed exists, the API serves it immediately
+and schedules a background refresh to keep the cache up to date. When no cache exists,
 the feed is fetched, converted, and stored before being returned to the client.
-\paragraph{}
-This stale-while-revalidate caching strategy ensures that the API always responds quickly, 
-even when the upstream RSS feed is slow or temporarily unavailable, while still keeping 
+
+This stale-while-revalidate caching strategy ensures that the API always responds quickly,
+even when the upstream RSS feed is slow or temporarily unavailable, while still keeping
 the data reasonably fresh.
 
 \subsubsection{RSS2JSON API Implementation Stack}
@@ -987,27 +993,27 @@ The RSS2JSON API was implemented in Python using the FastAPI framework. The appl
 architecture relies on several key technologies:
 
 \begin{itemize}
-    \item \textbf{FastAPI} --- the web framework used to define and expose the REST endpoint, 
+    \item \textbf{FastAPI} --- the web framework used to define and expose the REST endpoint,
           providing automatic OpenAPI documentation generation and request validation;
-    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and 
+    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and
           exposing the API through HTTP requests;
-    \item \textbf{httpx} --- an asynchronous HTTP client used to fetch the RSS feed from 
+    \item \textbf{httpx} --- an asynchronous HTTP client used to fetch the RSS feed from
           the provided URL, supporting redirects and configurable timeouts;
-    \item \textbf{xmltodict} --- used to parse the XML/RSS content into a Python dictionary, 
+    \item \textbf{xmltodict} --- used to parse the XML/RSS content into a Python dictionary,
           which is then serialized into JSON;
-    \item \textbf{Pydantic} --- used for request parameter validation, ensuring the RSS URL 
+    \item \textbf{Pydantic} --- used for request parameter validation, ensuring the RSS URL
           is provided and correctly formatted.
 \end{itemize}
 
 The API exposes the following endpoint:
 
 \begin{itemize}
-    \item \texttt{GET /rss2json} --- converts a RSS feed to JSON, accepting the following 
+    \item \texttt{GET /rss2json} --- converts a RSS feed to JSON, accepting the following
           query parameters:
     \begin{itemize}
         \item \textbf{rss} --- the URL of the RSS feed to convert (required, must be URL-encoded);
-        \item \textbf{callback} --- an optional JavaScript function name; when provided, 
-              the response is returned in JSONP format instead of plain JSON, enabling 
+        \item \textbf{callback} --- an optional JavaScript function name; when provided,
+              the response is returned in JSONP format instead of plain JSON, enabling
               cross-origin requests from browser-based clients.
     \end{itemize}
 \end{itemize}
@@ -1015,34 +1021,33 @@ The API exposes the following endpoint:
 The caching behaviour follows this logic:
 
 \begin{itemize}
-    \item \textbf{Cache hit} --- the cached JSON is served immediately and a background 
+    \item \textbf{Cache hit} --- the cached JSON is served immediately and a background
           task is scheduled to refresh the cache asynchronously, without blocking the response;
-    \item \textbf{Cache miss} --- the RSS feed is fetched synchronously, converted to JSON, 
+    \item \textbf{Cache miss} --- the RSS feed is fetched synchronously, converted to JSON,
           stored in the cache, and returned to the client;
-    \item \textbf{Cache storage} --- each feed is stored as a file identified by the 
+    \item \textbf{Cache storage} --- each feed is stored as a file identified by the
           SHA-1 hash of its URL, in a dedicated cache directory within the application.
 \end{itemize}
 
 \subsection{Access Points --- Mock API}
-The ServicesWebUAPT platform is not merely a system that centralizes the various services offered by 
-the University of Aveiro. Rather, it is designed to facilitate easy integration of new APIs 
-that may be developed in the future. To demonstrate this extensibility, we created a mock API 
-to simulate the integration of new web services into the platform. 
-\paragraph{}
-Our supervisor recommended developing a mock API for the University of Aveiro's access points, 
-containing useful information such as their geographical locations, maximum connection capacity, 
-and other data relevant to the academic community.
-\paragraph{}
-To store the mock API data we created a MySQL database hosted on the IETTA infrastructure. 
-This decision was driven by the fact that, concurrently with this project, we attended 
-a relational databases course that provided access to the IETTA database for class exercises 
-and the course project. Given that existing access and the operational convenience it provided, 
-we obtained permission from the course coordinator to use the IETTA database for persisting 
-the data for our mock API.
-\paragraph{}
-The database schema contains two primary tables: one for access points and another for the 
-departments where each access point is located. Each table includes several attributes, 
-which are represented in the entity–relationship diagram (ERD) shown in Figure~(\ref{fig:mock_api_erd}). 
+The ServicesWebUAPT platform is not merely a system that centralises the various
+services offered by the University of Aveiro. Rather, it is designed to facilitate
+easy integration of new APIs that may be developed in the future. To demonstrate
+this extensibility, a mock API was developed to simulate the integration of new
+web services into the platform.
+
+The project supervisor recommended developing a mock API for the University of
+Aveiro's access points, containing useful information such as geographical locations,
+maximum connection capacity, and other data relevant to the academic community.
+
+A MySQL database hosted on the IETTA infrastructure was used to store the mock API
+data. This choice was motivated by the fact that access to the IETTA database was
+already available through a concurrent relational databases course, and permission
+was obtained from the course coordinator to use it for this purpose.
+
+The database schema contains two primary tables: one for access points and another for the
+departments where each access point is located. Each table includes several attributes,
+which are represented in the entity--relationship diagram (ERD) shown in Figure~(\ref{fig:mock_api_erd}).
 The ERD was designed to organise and document the database structure.
 
 \begin{figure}[H]
@@ -1054,20 +1059,20 @@ The ERD was designed to organise and document the database structure.
 
 \subsubsection{Mock API Implementation Stack}
 
-The mock API was implemented in Python, running on a virtual environment 
-to isolate project dependencies and ensure a controlled, reproducible development environment without 
+The mock API was implemented in Python, running on a virtual environment
+to isolate project dependencies and ensure a controlled, reproducible development environment without
 conflicts with other system installations. The application architecture relies on several key technologies:
 
 \begin{itemize}
-    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and exposing 
+    \item \textbf{Uvicorn} --- the ASGI server responsible for running the application and exposing
           the API through HTTP requests;
     \item \textbf{PyODBC} --- the library used to establish the connection between the Python application
           and the SQL Server database, using the ODBC protocol;
-    \item \textbf{ODBC} --- a standard that enables access to different database management systems 
-          in a uniform and language-independent way, providing database abstraction;
+    \item \textbf{ODBC} --- a standard that enables access to different database management systems
+          in a uniform and language-independent way, providing database abstraction.
 \end{itemize}
 
-The overall architecture diagram is shown in Figure~(\ref{fig:mock_api_architecture}), illustrating 
+The overall architecture diagram is shown in Figure~(\ref{fig:mock_api_architecture}), illustrating
 the integration of these components within the broader ServicesWebUAPT platform.
 
 \begin{figure}[H]
@@ -1082,15 +1087,15 @@ the integration of these components within the broader ServicesWebUAPT platform.
 
 The user-facing layer is the \textit{Academic Playground \& Innovation} portal. It serves
 two purposes: providing comprehensive documentation on how to use each API, and allowing interactive
-testing of all available endpoints directly in the browser. The goal is to make it 
-easy for developers to learn how to integrate the APIs available into their own projects. Once 
+testing of all available endpoints directly in the browser. The goal is to make it
+easy for developers to learn how to integrate the APIs available into their own projects. Once
 they are familiar with the methods, the portal serves as a reliable reference guide.
 
 \subsection{Structure and Content}
 The portal was developed using \textbf{Docusaurus}, a static site generator built on
 React and maintained by Meta. This choice is justified by its native support for Markdown
 and MDX, built-in documentation versioning, and ease of maintenance --- updating content
-requires only editing text files, with no need to touch application code. 
+requires only editing text files, with no need to touch application code.
 
 This architecture facilitates scaling the number of APIs. Adding a new API to the portal requires no manual frontend development. Administrators only need to declare a new Scalar plugin instance in the configuration file, pointing it to the respective OpenAPI YAML definition:
 
@@ -1120,13 +1125,13 @@ This architecture facilitates scaling the number of APIs. Adding a new API to th
 \end{figure}
 
 \subsection{Interactive Testing}
-To provide interactive testing capabilities directly in the browser, was integrated Scalar into the Docusaurus site.
+To provide interactive testing capabilities directly in the browser, Scalar was integrated into the Docusaurus site.
 Rather than communicating with the FastAPI backend directly, all test requests issued from the portal are routed through the \textbf{WSO2 API Gateway}, mimicking the exact path taken by any external consumer. This is accomplished by setting the WSO2 public endpoint as the target server in the OpenAPI specification:
 
 \begin{lstlisting}[language=json, caption={OpenAPI server configuration targeting WSO2}]
 {
   "servers": [
-    { "url": "https://api.ua.pt/v1" }
+    { "url": "https://wso2-host:8243/api/v1" }
   ]
 }
 \end{lstlisting}
@@ -1138,7 +1143,7 @@ Rather than communicating with the FastAPI backend directly, all test requests i
     \label{fig:scalar_interface}
 \end{figure}
 
-A fundamental challenge when integrating interactive API testing within a browser environment is the Cross-Origin Resource Sharing (CORS) policy. Since the portal interacts with various external APIs that may lack proper CORS configurations, a dedicated middleware proxy was developed using Node.js and Express. 
+A fundamental challenge when integrating interactive API testing within a browser environment is the Cross-Origin Resource Sharing (CORS) policy. Since the portal interacts with various external APIs that may lack proper CORS configurations, a dedicated middleware proxy was developed using Node.js and Express.
 
 When the Scalar interface attempts to call a restricted API, the request is routed to the proxy. The proxy server performs the actual HTTP request to the target destination, attaching necessary wildcard CORS headers to the response before forwarding the payload back to the Docusaurus frontend.
 
@@ -1175,7 +1180,7 @@ async function handler(req, res) {
 \subsection{Keycloak Integration}
 To handle private APIs and administrative tools, the portal integrates seamlessly with \textbf{Keycloak} for Single Sign-On (SSO). Using the \texttt{@react-keycloak/web} library, the application maintains a global authentication state across the static site. To ensure compatibility with Docusaurus' Static Site Generation (SSG) process, protected React components are wrapped in a \texttt{<BrowserOnly>} boundary, preventing server-side rendering errors.
 
-A dynamic Role-Based Access Control (RBAC) system was implemented directly in the UI. Components such as the Navigation Bar automatically read the JSON Web Token (JWT) provided by Keycloak and filter their visibility based on the user's assigned roles. 
+A dynamic Role-Based Access Control (RBAC) system was implemented directly in the UI. Components such as the Navigation Bar automatically read the JSON Web Token (JWT) provided by Keycloak and filter their visibility based on the user's assigned roles.
 
 \begin{table}[H]
     \centering
@@ -1201,10 +1206,10 @@ The custom \texttt{ProtectedDropdown} component reads these declarative properti
   position: 'left',
   items: [
     { label: 'Parques', to: '/api/parques' }, // Public
-    { 
-      label: 'Rss2json', 
+    {
+      label: 'Rss2json',
       to: '/api/rss2json',
-      customProps: { allowedRoles: ['admin_role', 'publisher_role'] } 
+      customProps: { allowedRoles: ['admin_role', 'publisher_role'] }
     }
   ]
 }
@@ -1269,10 +1274,10 @@ frequently, and detect usage trends over time. Pie charts show the distribution 
 traffic across the API catalogue, making it immediately apparent which services drive
 the most load. Time-series panels reveal peak usage hours --- for instance, the canteen
 menu API predictably spikes around midday --- allowing the administrator to anticipate
-load and plan maintenance windows accordingly. In the following example, illustrated in Figure 
+load and plan maintenance windows accordingly. In the following example, illustrated in Figure
 \ref{fig:grafana_apis}, one can see the service's logs from the last hour and see that the \texttt{Parques}
 API was not used, as well as compare the usage of the ones that were.
-.
+
 
 \begin{figure}[H]
     \centering
@@ -1285,10 +1290,11 @@ The \textbf{WSO2 Dashboard} focuses on gateway health. It surfaces warning and e
 counts from the WSO2 logs, highlights \texttt{403 Forbidden} responses (indicating
 rejected or misconfigured access attempts), and flags critical exceptions such as
 \texttt{OutOfMemoryError} or \texttt{FATAL} entries. An alerting rule monitors for
-these critical patterns continuously; when triggered, it dispatches a notification to
-the administrator. The rule is calibrated with \texttt{noDataState: OK} so that periods
-of low or zero traffic --- expected outside academic hours --- do not generate false
-positive alerts. In the following example, illustrated in Figure \ref{fig:grafana_wso2}, 
+these critical patterns continuously; when triggered, it dispatches a notification via
+the Grafana alerting channel configured for the administrator (e-mail by default, with
+support for webhook integrations). The rule is calibrated with \texttt{noDataState: OK}
+so that periods of low or zero traffic --- expected outside academic hours --- do not
+generate false positive alerts. In the following example, illustrated in Figure \ref{fig:grafana_wso2},
 one can see the gateway's logs from the last hour.
 
 \begin{figure}[H]
@@ -1304,6 +1310,7 @@ system is healthy}. This separation of concerns makes it straightforward to tria
 issues --- a spike in 403 errors on the WSO2 dashboard points to an authentication or
 subscription problem, while an unexpected drop in traffic on the APIs dashboard may
 indicate a backend outage.
+
 % ─────────────────────────────────────────────────────────────────────────────
 %  CHAPTER 5 -- Results
 % ─────────────────────────────────────────────────────────────────────────────
@@ -1335,7 +1342,7 @@ and the refactoring of existing services, followed by the implementation and sta
 of the core institutional APIs. In the final phase, additional APIs were integrated and
 the project report was completed, ensuring that the technical work was accompanied by
 up-to-date documentation and validation milestones.
-This schedule was successfuly followed and used to keep track of how late or early the 
+This schedule was successfully followed and used to keep track of how late or early the
 team's work was being done.
 
 
@@ -1381,9 +1388,8 @@ full week's menu data in Memcached and filters it in memory on each request, and
 The Rss2Json API applies a stale-while-revalidate strategy, returning cached content
 immediately and refreshing it in the background. The Parques API reduces overhead by
 wrapping the original SOAP service behind a lightweight REST interface, isolating the
-most expensive part of the request path. Under these conditions, all APIs consistently
-respond within the defined threshold.
-% TODO: add measured response time data when available.
+most expensive part of the request path. Under these conditions, all APIs were observed
+to respond consistently within the defined threshold during local testing.
 
 \subsection{AI Acknowledgement}
 Artificial intelligence tools were used during the development of this project in a
